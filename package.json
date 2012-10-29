@@ -1,0 +1,26 @@
+{
+  "name": "mysqlUtil",
+  "version": "0.0.1",
+  "description": "A nice, simple, minuscule ORM thing wrapping node-mysql",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "underscore": "~1.3.1",
+    "async": "~0.1.22",
+    "mysql": "~2.0.0-alpha3"
+  },
+  "devDependencies": {
+    "tap": "~0.3.1"
+  },
+  "scripts": {
+    "test": "tap test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mindflash/mysqlUtil.git"
+  },
+  "author": "Mindflash",
+  "license": "X11"
+}
