@@ -256,14 +256,14 @@ module.exports = function (conn) {
 	}
 
 	function disableKeyChecks(cb) {
-		conn.query("SET unique_checks=0; SET foreign_key_checks=0;", null, function(err,result) {
-			cb(err);
+		query("SET unique_checks=0;", null, function(err,result) {
+			query("SET foreign_key_checks=0;", cb)
 		});
 	}
 
 	function enableKeyChecks(cb) {
-		conn.query("SET unique_checks=1; SET foreign_key_checks=1;", null, function(err,result) {
-			cb(err);
+		query("SET unique_checks=1;", null, function(err,result) {
+			query("SET foreign_key_checks=1;", cb)
 		});
 	}
 
