@@ -1,3 +1,3 @@
 exports.identity = "identity";
-exports.custom = "identity";
+exports.custom = "custom";
 exports.hilo = "hilo";

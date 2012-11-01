@@ -255,6 +255,18 @@ module.exports = function (conn) {
 		};
 	}
 
+	function disableKeyChecks(cb) {
+		conn.query("SET unique_checks=0; SET foreign_key_checks=0;", null, function(err,result) {
+			cb(err);
+		});
+	}
+
+	function enableKeyChecks(cb) {
+		conn.query("SET unique_checks=1; SET foreign_key_checks=1;", null, function(err,result) {
+			cb(err);
+		});
+	}
+
 	var obj = _.defaults({
 		defaultInsertMode:insertModes.hilo,
 		defaultKeyName:'id',
@@ -277,6 +289,9 @@ module.exports = function (conn) {
 		startTransaction:transactions.startTransaction,
 		commit:transactions.commit,
 		rollback:transactions.rollback,
+
+		disableKeyChecks:disableKeyChecks,
+		enableKeyChecks:enableKeyChecks,
 
 		disconnect:disconnect,
 
