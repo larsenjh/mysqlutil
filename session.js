@@ -73,7 +73,7 @@ module.exports = function (conn) {
 					);
 				});
 
-				query(sql.join(''), rows, function queryCb(err, result) {
+				query(sql.join(''), [rows], function queryCb(err, result) {
 //				if (result) //Return the new id in a consistent way no matter the insertMode
 //					result.insertId = item.$insertId || result.insertId;
 					insertCb(err, result);
