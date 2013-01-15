@@ -119,9 +119,14 @@ function runTest(t, testFn) {
 function setup(cb) {
 	async.series([
 		harness.connect,
-		harness.createTempTable
+		function(sCb) {
+			harness.createTable({tempTable: true}, sCb);
+		}
 	], cb);
 }
 function tearDown(cb) {
-	harness.disconnect(cb);
+	async.series([
+		harness.dropTable,
+		harness.disconnect
+	], cb);
 }
