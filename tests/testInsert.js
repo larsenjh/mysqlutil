@@ -64,8 +64,8 @@ test('INSERTs are not written inside transactions that have been rolled back', {
 				harness.mysqlSession.insert('tmp', newItem, seriesCb);
 			},
 			function checkInsert(seriesCb) {
-				harness.mysqlSession.query('SELECT * FROM tmp', [], function (err, result) {
-					t.equal(result.length, 1, "1 row should be inserted.");
+				harness.mysqlSession.query('SELECT * FROM tmp', [], function (err, result1) {
+					t.equal(result1.length, 1, "1 row should be inserted.");
 					seriesCb();
 				});
 			},
@@ -73,14 +73,14 @@ test('INSERTs are not written inside transactions that have been rolled back', {
 				harness.mysqlSession.rollback(seriesCb);
 			},
 			function checkInsert(seriesCb) {
-				harness.mysqlSession.query('SELECT * FROM tmp', [], function (err, result) {
-					t.equal(result.length, 0, "no rows should be inserted.");
+				harness.mysqlSession.query('SELECT * FROM tmp', [], function (err, result2) {
+					t.equal(result2.length, 0, "no rows should be inserted.");
 					seriesCb();
 				});
 			},
 			cb
 		]);
-	});
+	}, {tempTable: false});
 });
 
 test('bulk INSERT works', function (t) {
@@ -98,7 +98,7 @@ test('bulk INSERT works', function (t) {
 	});
 });
 
-test('INSERT returns $insertId', function (t) {
+test('INSERT returns insertId', function (t) {
 	runTest(t, function (cb) {
 		harness.mysqlSession.insert('tmp', {name: 'test ', created: new Date()}, function (err, result) {
 			t.ok(result.insertId, "result.insertId should be passed back on insert");
@@ -107,26 +107,18 @@ test('INSERT returns $insertId', function (t) {
 	});
 });
 
-function runTest(t, testFn) {
+function runTest(t, testFn, createTableOptions) {
+	createTableOptions = createTableOptions || {tempTable: true};
 	async.series([
-		setup,
+		harness.connect,
+		harness.dropTable,
+		function(cb) {
+			harness.createTable(createTableOptions, cb);
+		},
 		testFn,
-		tearDown
+		harness.dropTable,
+		harness.disconnect
 	], function(err,res) {
 		t.end();
 	});
-}
-function setup(cb) {
-	async.series([
-		harness.connect,
-		function(sCb) {
-			harness.createTable({tempTable: true}, sCb);
-		}
-	], cb);
-}
-function tearDown(cb) {
-	async.series([
-		harness.dropTable,
-		harness.disconnect
-	], cb);
 }

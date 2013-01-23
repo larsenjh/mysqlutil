@@ -60,12 +60,11 @@ module.exports = function (conn) {
 
 				var rows = []; // values needs to be a 2-d array for bulk INSERT
 				_.each(items, function (item) {
-					// TODO
-//				if (options.enforceRules) {
-//					_.each(obj.insertRules, function (rule) {
-//						rule(item, fields, _.values(item), expressions, tableName); // created, modified set to now etc
-//					});
-//				}
+					if (options.enforceRules) {
+						_.each(obj.insertRules, function (rule) {
+							rule(item, fields, _.values(item), null, tableName);
+						});
+					}
 					rows.push(
 						_.map(fields, function (field) {
 							return item[field];
@@ -74,9 +73,7 @@ module.exports = function (conn) {
 				});
 
 				query(sql.join(''), [rows], function queryCb(err, result) {
-//				if (result) //Return the new id in a consistent way no matter the insertMode
-//					result.insertId = item.$insertId || result.insertId;
-					insertCb(err, result);
+					insertCb(err, items);
 				});
 			}
 		);
@@ -90,8 +87,8 @@ module.exports = function (conn) {
 			ignore: false
 		});
 
-//		if (items.length > 1)
-//			return bulkInsert(tableName, items, insertCb, options);
+		if (items.length > 1)
+			return bulkInsert(tableName, items, insertCb, options);
 
 		var stack = [];
 		async.forEachLimit(items, concurrencyLimit,

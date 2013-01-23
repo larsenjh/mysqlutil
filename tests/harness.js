@@ -1,7 +1,6 @@
 "use strict";
 var mysqlUtil = require('../');
-
-exports.mysqlSession = {};
+exports.mysqlSession = null;
 
 exports.createTable = function(options, cb) {
 	var sql = [
