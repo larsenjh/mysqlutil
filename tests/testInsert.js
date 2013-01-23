@@ -14,6 +14,7 @@ test('an insert using hilo should not fail', function (t) {
 		function test(seriesCb) {
 			mysqlSession.insert('tmp', newItem, function (err, result) {
 				t.notOk(err, "no errors should be thrown on insert");
+				t.ok(result, "result should have a value");
 				t.ok(result.insertId, "result.insertId should be passed back on insert");
 				seriesCb();
 			});
@@ -110,7 +111,7 @@ test('a bulk insert should be awesome', function (t) {
 			mysqlSession.insert('tmp', items, function (err, result) {
 				t.notOk(err, "no errors should be thrown on insert");
 				console.log(err, result);
-				t.equal(items.length, result.affectedRows, "Expect to affect the same number of rows you insert");
+				t.equal(items.length, result.length, "1 result metadata object is returned per INSERT");
 				seriesCb();
 			});
 		},
@@ -124,13 +125,11 @@ test('a bulk insert should be awesome', function (t) {
 function setup(cb) {
 	async.series([
 		connect,
-		dropTable,
 		createTable
 	], cb);
 }
 function tearDown(t) {
 	async.series([
-		dropTable,
 		disconnect,
 		function (cb) {
 			t.end();
@@ -141,7 +140,7 @@ function tearDown(t) {
 
 function createTable(cb) {
 	var sql = [
-		'CREATE TABLE IF NOT EXISTS tmp (',
+		'CREATE TEMPORARY TABLE tmp (',
 		'id BIGINT(20) NOT NULL,',
 		'created datetime NOT NULL,',
 		'name varchar(150) COLLATE utf8_unicode_ci NOT NULL,',
@@ -153,18 +152,11 @@ function createTable(cb) {
 	});
 }
 
-function dropTable(cb) {
-	var sql = "DROP TABLE IF EXISTS tmp;";
-	mysqlSession.query(sql, [], function (err, result) {
-		cb(err, result);
-	});
-}
-
 function connect(cb) {
 	mysqlUtil.connect({
-		host: process.env.MYSQL_HOST,
-		user: process.env.MYSQL_USER,
-		password: process.env.MYSQL_PASSWORD,
+		host: process.env.MYSQL_HOST || 'localhost',
+		user: process.env.MYSQL_USER || 'root',
+		password: process.env.MYSQL_PASSWORD || '',
 		database: process.env.MYSQL_DATABASE
 	}, function (err, session) {
 		mysqlSession = session;
