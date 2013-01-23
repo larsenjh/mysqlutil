@@ -56,13 +56,19 @@ module.exports = function (conn) {
 					return key.charAt(0) !== '$';
 				});
 
+				if (options.enforceRules) {
+					_.each(obj.insertRules, function (rule) {
+						rule(null, fields, null, null, tableName);
+					});
+				}
+
 				sql.push('(', fields.join(','), ') VALUES ? ');
 
 				var rows = []; // values needs to be a 2-d array for bulk INSERT
 				_.each(items, function (item) {
 					if (options.enforceRules) {
 						_.each(obj.insertRules, function (rule) {
-							rule(item, fields, _.values(item), null, tableName);
+							rule(item, null, null, null, tableName);
 						});
 					}
 					rows.push(
