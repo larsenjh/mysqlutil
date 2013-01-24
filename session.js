@@ -6,6 +6,7 @@ var fs = require('fs');
 var insertModes = require('./insertModes.js');
 
 var concurrencyLimit = 10;
+var bulkInsertBatchSize = 1000;
 
 module.exports = function (conn) {
 	var transactions = require('./transactions.js')(conn);
@@ -99,10 +100,9 @@ module.exports = function (conn) {
 			async.whilst(
 				function () {return idx < items.length;},
 				function (cb) {
-					var chunk = items.slice(idx, idx + 1000);
-					console.log(idx, chunk.length, items.length);
+					var chunk = items.slice(idx, idx + bulkInsertBatchSize);
 					bulkInsert(tableName, chunk, cb, options);
-					idx += 1000;
+					idx += bulkInsertBatchSize;
 				},
 				insertCb
 			);
