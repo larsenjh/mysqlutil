@@ -1,3 +1,4 @@
+"use strict";
 var _ = require('underscore');
 var async = require('async');
 var util = require('util');
@@ -93,8 +94,20 @@ module.exports = function (conn) {
 			ignore: false
 		});
 
-		if (items.length > 1)
-			return bulkInsert(tableName, items, insertCb, options);
+		if (items.length > 1) {
+			var idx = 0;
+			async.whilst(
+				function () {return idx < items.length;},
+				function (cb) {
+					var chunk = items.slice(idx, idx + 1000);
+					console.log(idx, chunk.length, items.length);
+					bulkInsert(tableName, chunk, cb, options);
+					idx += 1000;
+				},
+				insertCb
+			);
+			return;
+		}
 
 		var stack = [];
 		async.forEachLimit(items, concurrencyLimit,
@@ -267,7 +280,7 @@ module.exports = function (conn) {
 			type: 'hilo',
 			computedKey: true,
 			computeNextKey: function computeNextKey(mysql, cb) {
-				if (nextID <= lastBatchID) {
+				if (nextID < lastBatchID) {
 					log('*** Handing out id ' + nextID);
 					var currentID = nextID;
 					nextID++;

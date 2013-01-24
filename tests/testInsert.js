@@ -3,6 +3,24 @@ var test = require('tap').test;
 var async = require('async');
 var harness = require('./harness.js');
 
+test('a bulk INSERT using hilo should not fail', function (t) {
+	var items = [];
+	for(var i = 0; i < 40001; i++) {
+		items[i] = {
+			created: new Date(),
+			name: "This is a test"
+		};
+	}
+	runTest(t, function (cb) {
+		harness.mysqlSession.insert('tmp', items, function (err, result) {
+			console.log(err);
+			t.notOk(err, "no errors should be thrown on insert");
+			cb();
+		});
+	});
+});
+
+/*
 test('an INSERT using hilo should not fail', function (t) {
 	var newItem = {
 		created: new Date(),
@@ -106,7 +124,7 @@ test('INSERT returns insertId', function (t) {
 		});
 	});
 });
-
+*/
 function runTest(t, testFn, createTableOptions) {
 	createTableOptions = createTableOptions || {tempTable: true};
 	async.series([
