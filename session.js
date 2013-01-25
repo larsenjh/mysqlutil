@@ -313,7 +313,6 @@ module.exports = function (conn) {
 						});
 					});
 				}
-
 			}
 		};
 	}
