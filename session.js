@@ -123,7 +123,7 @@ module.exports = function (conn) {
 			return;
 		}
 
-		var item = items.pop();
+		var item = items[0];
 		async.series([
 			function (sCb) {
 				hiloRef.computeNextKey(obj, function hiloCb(nextKey) {
