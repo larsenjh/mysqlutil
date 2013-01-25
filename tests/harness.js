@@ -11,7 +11,7 @@ exports.createTable = function(options, cb) {
 		'PRIMARY KEY (id)',
 		') ENGINE=InnoDB DEFAULT CHARSET=utf8'
 	].join('\n');
-	exports.mysqlSession.query(sql, [], cb);
+	exports.mysqlSession.query(sql, cb);
 }
 
 exports.connect = function(cb) {
@@ -27,7 +27,7 @@ exports.connect = function(cb) {
 }
 
 exports.dropTable = function(cb) {
-	exports.mysqlSession.query('DROP TABLE IF EXISTS tmp;', [], cb);
+	exports.mysqlSession.query('DROP TABLE IF EXISTS tmp;', cb);
 };
 
 exports.disconnect = function(cb) {

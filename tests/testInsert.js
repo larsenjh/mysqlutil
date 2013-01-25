@@ -20,7 +20,6 @@ test('a bulk INSERT using hilo should not fail', function (t) {
 	});
 });
 
-/*
 test('an INSERT using hilo should not fail', function (t) {
 	var newItem = {
 		created: new Date(),
@@ -104,7 +103,7 @@ test('INSERTs are not written inside transactions that have been rolled back', {
 test('bulk INSERT works', function (t) {
 	var items = [];
 
-	for (var i = 0; i < 100; i++)
+	for (var i = 0; i < 10000; i++)
 		items[i] = {name: 'test ' + i, created: new Date()};
 
 	runTest(t, function (cb) {
@@ -124,7 +123,7 @@ test('INSERT returns insertId', function (t) {
 		});
 	});
 });
-*/
+
 function runTest(t, testFn, createTableOptions) {
 	createTableOptions = createTableOptions || {tempTable: true};
 	async.series([

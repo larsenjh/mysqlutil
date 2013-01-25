@@ -10,6 +10,7 @@ var bulkInsertBatchSize = 1000;
 
 module.exports = function (conn) {
 	var transactions = require('./transactions.js')(conn);
+	var hiloRef = hilo();
 
 	function log() {
 		if (!obj.logging)
@@ -37,8 +38,6 @@ module.exports = function (conn) {
 			queryCb(err, result);
 		});
 	}
-
-	var hiloRef = hilo();
 
 	function bulkInsert(tableName, items, insertCb, options) {
 		async.forEach(items,
@@ -81,6 +80,12 @@ module.exports = function (conn) {
 				});
 
 				query(sql.join(''), [rows], function queryCb(err, result) {
+					// $insertId -> insertId
+					items = _.map(items, function (item) {
+						item.insertId = item.$insertId;
+						delete item.$insertId;
+						return item;
+					});
 					insertCb(err, items);
 				});
 			}
@@ -97,42 +102,43 @@ module.exports = function (conn) {
 
 		if (items.length > 1) {
 			var idx = 0;
+			var insertedItems = [];
 			async.whilst(
-				function () {return idx < items.length;},
-				function (cb) {
-					var chunk = items.slice(idx, idx + bulkInsertBatchSize);
-					bulkInsert(tableName, chunk, cb, options);
-					idx += bulkInsertBatchSize;
+				function () {
+					return idx < items.length;
 				},
-				insertCb
+				function (wCb) {
+					var chunk = items.slice(idx, idx + bulkInsertBatchSize);
+					bulkInsert(tableName, chunk, function (err, result) {
+						if (err) return wCb(err);
+						insertedItems = insertedItems.concat(result);
+						idx += bulkInsertBatchSize;
+						wCb();
+					}, options);
+				},
+				function (err) {
+					insertCb(err, insertedItems);
+				}
 			);
 			return;
 		}
 
-		var stack = [];
-		async.forEachLimit(items, concurrencyLimit,
-			function (item, forEachCb) {
-				if (options.insertMode === insertModes.hilo) {
-					hiloRef.computeNextKey(obj, function hiloCb(nextKey) {
-						item.$insertId = item[hiloRef.keyName] = nextKey;
-						insertItem(function insertItemCb(err, result) {
-							if (err) return insertCb(err);
-							stack.push(result);
-							forEachCb();
-						}, item, options);
-					});
-				} else {
-					insertItem(function insertItemCb(err, result) {
-						if (err) return insertCb(err);
-						stack.push(result);
-						forEachCb();
-					}, item, options);
-				}
+		var item = items.pop();
+		async.series([
+			function (sCb) {
+				hiloRef.computeNextKey(obj, function hiloCb(nextKey) {
+					item.$insertId = item[hiloRef.keyName] = nextKey;
+					sCb();
+				});
 			},
-			function foreachFinalCb(err) {
-				insertCb(err, stack.length > 1 ? stack : stack[0]);
+			function (sCb) {
+				insertItem(sCb, item, options);
 			}
-		);
+		], function (err, res) {
+			item.insertId = item.$insertId;
+			delete item.$insertId;
+			insertCb(err, item);
+		});
 
 		function insertItem(insertItemCb, item, options) {
 			var sql = [];
@@ -160,8 +166,6 @@ module.exports = function (conn) {
 			sql = sql.join('');
 
 			query(sql, values, function queryCb(err, result) {
-				if (result) //Return the new id in a consistent way no matter the insertMode
-					result.insertId = item.$insertId || result.insertId;
 				insertItemCb(err, result);
 			});
 		}
