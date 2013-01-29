@@ -50,7 +50,12 @@ module.exports = function (conn) {
 			function insertItems(err) {
 				if (err) return insertCb(err);
 				var sql = [];
-				sql.push('INSERT ', (options.ignore ? 'IGNORE ' : ' '), 'INTO ', tableName, ' ');
+				if (options.replace) {
+					sql.push('REPLACE ');
+				} else {
+					sql.push('INSERT ', (options.ignore ? 'IGNORE ' : ' '));
+				}
+				sql.push('INTO ', tableName, ' ');
 
 				// use the 1st item to get our fields
 				var fields = _.filter(_.keys(items[0]), function (key) {
