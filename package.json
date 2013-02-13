@@ -1,6 +1,6 @@
 {
 	"name": "mysqlutil",
-	"version": "0.0.94",
+	"version": "0.0.95",
 	"description": "A nice, simple, minuscule ORM thing wrapping node-mysql",
 	"main": "index.js",
 	"directories": {
@@ -19,7 +19,6 @@
 	"author": "Mindflash",
 	"license": "X11",
 	"readmeFilename": "README.md",
-	"gitHead": "4dfd039153cc8539126424232f896e1cae6fb70f",
 	"dependencies": {
 		"mysql": "~2.0.0-alpha7",
 		"underscore": "~1.4.3",
