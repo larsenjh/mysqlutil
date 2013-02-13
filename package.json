@@ -1,6 +1,6 @@
 {
   "name": "mysqlutil",
-  "version": "0.0.93",
+  "version": "0.0.94",
   "description": "A nice, simple, minuscule ORM thing wrapping node-mysql",
   "main": "index.js",
   "directories": {

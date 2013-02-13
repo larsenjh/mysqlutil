@@ -26,9 +26,7 @@ test('an insert using hilo works', function (t) {
 });
 
 test('an insert supplied with a UTC date persists that date without altering it', function (t) {
-	var now = new Date();
-	var nowUtc = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(),
-		now.getUTCMinutes(), now.getUTCSeconds());
+	var nowUtc = harness.utils.utcNow();
 
 	var newItem = {created: nowUtc, name: "This is a test"};
 	var newId = -1;
@@ -45,7 +43,7 @@ test('an insert supplied with a UTC date persists that date without altering it'
 			},
 			function checkInsert(seriesCb) {
 				harness.mysqlSession.queryOne('SELECT * FROM tmp WHERE id = ?', [newId], function (selectErr, selectResult) {
-					t.equal(selectResult.created.getTime(), nowUtc.getTime(), "utc date was inserted without alterations");
+					t.equal(Date.parse(selectResult.created.toString()), Date.parse(nowUtc.toString()), "utc date was inserted without alterations");
 					seriesCb();
 				});
 			}

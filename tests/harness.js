@@ -32,4 +32,6 @@ exports.dropTable = function(cb) {
 
 exports.disconnect = function(cb) {
 	exports.mysqlSession.disconnect(cb);
-}
+};
+
+exports.utils = mysqlUtil.utils;
