@@ -18,4 +18,5 @@ exports.connect = function (settings, cb) {
 	});
 };
 exports.insertModes = require('./insertModes.js');
+exports.util = require('./utils.js');
 exports.session = {};
