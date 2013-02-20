@@ -102,7 +102,8 @@ module.exports = function (conn) {
 		options = _.defaults(options || {}, {
 			insertMode: obj.defaultInsertMode,
 			enforceRules: true,
-			ignore: false
+			ignore: false,
+			replace: false
 		});
 
 		if (items.length > 1) {
@@ -147,7 +148,12 @@ module.exports = function (conn) {
 
 		function insertItem(insertItemCb, item, options) {
 			var sql = [];
-			sql.push('INSERT ', (options.ignore ? 'IGNORE ' : ' '), 'INTO ', tableName, ' (');
+			if (options.replace) {
+				sql.push('REPLACE ');
+			} else {
+				sql.push('INSERT ', (options.ignore ? 'IGNORE ' : ' '));
+			}
+			sql.push('INTO ', tableName, ' (');
 
 			var fields = [];
 			var values = [];
