@@ -1,7 +1,7 @@
 "use strict";
 var _ = require('underscore');
 
-module.exports.buildColsValues = function(params, cb) {
+module.exports.buildColsValues = function(params) {
 	var sql = [];
 	var fields = [];
 	var values = [];
@@ -24,5 +24,5 @@ module.exports.buildColsValues = function(params, cb) {
 	for (var i = fields.length; i--;)
 		fields[i] += '=' + expressions[i];
 
-	cb(null, fields.join(','));
+	return fields.join(',');
 };

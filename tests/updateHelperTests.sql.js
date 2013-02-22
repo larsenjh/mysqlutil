@@ -6,13 +6,13 @@ test('Simple updateHelper.buildColsValues test', function (t) {
 	var item = { id: 1, name: 'Test', color: 'Blue' };
 	var expectedString = 'id=?,name=?,color=?';
 
-	update.buildColsValues({
+	var res = update.buildColsValues({
 		item: item,
 		tableName: 'test'
-	}, function (err, res) {
-		t.equal(res, expectedString, "Returns columns-values section for UPDATE");
-		t.end();
 	});
+
+	t.equal(res, expectedString, "Returns columns-values section for UPDATE");
+	t.end();
 });
 
 test('updateHelper.buildColsValues test with rules', function (t) {
@@ -26,12 +26,12 @@ test('updateHelper.buildColsValues test with rules', function (t) {
 	}];
 	var expectedString = 'id=?,name=?,color=?,modified=UTC_TIMESTAMP';
 
-	update.buildColsValues({
+	var res = update.buildColsValues({
 		item: item,
 		tableName: 'test',
 		updateRules: updateRules
-	}, function (err, res) {
-		t.equal(res, expectedString, "Returns columns-values section for UPDATE");
-		t.end();
 	});
+
+	t.equal(res, expectedString, "Returns columns-values section for UPDATE");
+	t.end();
 });

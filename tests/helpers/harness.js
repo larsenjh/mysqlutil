@@ -1,6 +1,6 @@
 "use strict";
-var mysqlUtil = require('../');
-exports.mysqlSession = null;
+var mysqlUtil = require('../../.');
+exports.db = null;
 
 exports.createTable = function(options, cb) {
 	var sql = [
@@ -11,7 +11,7 @@ exports.createTable = function(options, cb) {
 		'PRIMARY KEY (id)',
 		') ENGINE=InnoDB DEFAULT CHARSET=utf8'
 	].join('\n');
-	exports.mysqlSession.query(sql, cb);
+	exports.db.query(sql, cb);
 }
 
 exports.connect = function(cb) {
@@ -21,17 +21,15 @@ exports.connect = function(cb) {
 		password: process.env.MYSQL_PASSWORD || '',
 		database: process.env.MYSQL_DATABASE || 'beaches_int'
 	}, function (err, session) {
-		exports.mysqlSession = session;
+		exports.db = session;
 		cb();
 	});
 }
 
 exports.dropTable = function(cb) {
-	exports.mysqlSession.query('DROP TABLE IF EXISTS tmp;', cb);
+	exports.db.query('DROP TABLE IF EXISTS tmp;', cb);
 };
 
 exports.disconnect = function(cb) {
-	exports.mysqlSession.disconnect(cb);
+	exports.db.disconnect(cb);
 };
-
-exports.utils = mysqlUtil.utils;

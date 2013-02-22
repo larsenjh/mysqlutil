@@ -4,6 +4,7 @@ var async = require('async');
 var util = require('util');
 var fs = require('fs');
 var insertModes = require('./util/insertModes.js');
+var updateHelper = require('./util/updateHelper.js');
 
 var concurrencyLimit = 10;
 var bulkInsertBatchSize = 1000;
@@ -87,8 +88,10 @@ module.exports = function (conn) {
 				query(sql.join(''), [rows], function queryCb(err, result) {
 					// $insertId -> insertId
 					items = _.map(items, function (item) {
-						item.insertId = item.$insertId;
-						delete item.$insertId;
+						if(item.$insertId) {
+							item.insertId = item.$insertId;
+							delete item.$insertId;
+						}
 						return item;
 					});
 					insertCb(err, items);
@@ -134,6 +137,7 @@ module.exports = function (conn) {
 		var item = items[0];
 		async.series([
 			function (sCb) {
+				if(options.insertMode != insertModes.hilo) return sCb();
 				hiloRef.computeNextKey(obj, function hiloCb(nextKey) {
 					item.$insertId = item[hiloRef.keyName] = nextKey;
 					sCb();
@@ -143,8 +147,10 @@ module.exports = function (conn) {
 				insertItem(sCb, item, options);
 			}
 		], function (err, res) {
-			item.insertId = item.$insertId;
-			delete item.$insertId;
+			if(item.$insertId) {
+				item.insertId = item.$insertId;
+				delete item.$insertId;
+			}
 			insertCb(err, item);
 		});
 
@@ -199,26 +205,19 @@ module.exports = function (conn) {
 
 				var sql = [];
 				sql.push('UPDATE ', tableName, ' SET ');
-				var fields = [];
-				var values = [];
-				var expressions = [];
 
-				_.each(item, function (value, field) {
-					if (field.charAt(0) !== '$') {
-						fields.push(field);
-						expressions.push('?');
-						values.push(value);
-					}
+				var fields = updateHelper.buildColsValues({
+					item: item,
+					tableName: tableName,
+					updateRules: options.enforceRules ? obj.updateRules : null
 				});
+				sql.push(fields);
 
-				if (options.enforceRules) {
-					_.each(obj.updateRules, function (rule) {
-						rule(item, fields, values, expressions, tableName);
-					});
-				}
-
-				for (var i = fields.length; i--;)
-					fields[i] += '=' + expressions[i];
+				var values = [];
+				_.each(item, function (value, field) {
+					if (field.charAt(0) !== '$')
+						values.push(value);
+				});
 
 				if (!item.$where) {
 					item.$where = obj.defaultKeyName + '=?';
@@ -227,10 +226,10 @@ module.exports = function (conn) {
 					values = values.concat(_.rest(item.$where));
 					item.$where = item.$where[0];
 				}
-
-				sql.push(fields.join(','), ' WHERE ', item.$where, ';');
+				sql.push(' WHERE ', item.$where, ';');
 
 				sql = sql.join('');
+
 				query(sql, values, function queryCb(err, result) {
 					if (err) updateCb(err);
 					stack.push(result);

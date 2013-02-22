@@ -1,27 +1,40 @@
 {
+	"author": "Mindflash <npmjs@mindflash.com>",
 	"name": "mysqlutil",
-	"version": "0.0.96",
 	"description": "A nice, simple, minuscule ORM thing wrapping node-mysql",
-	"main": "index.js",
-	"directories": {
-		"test": "tests"
-	},
-	"devDependencies": {
-		"tap": "*"
-	},
-	"scripts": {
-		"test": "tap test/*.js"
-	},
+	"homepage": "https://github.com/Mindflash/mysqlutil",
 	"repository": {
-		"type": "git",
 		"url": "https://github.com/Mindflash/mysqlutil.git"
 	},
-	"author": "Mindflash",
-	"license": "X11",
-	"readmeFilename": "README.md",
+	"keywords": ["mysql"],
+	"version": "0.0.97",
+	"bugs": {
+		"url": "https://github.com/Mindflash/mysqlutil/issues"
+	},
+	"contributors": [
+		"Matt Smith <matt.smith@mindflash.com>",
+		"Max Nachlinger <max.nachlinger@gmail.com>"
+	],
+	"licenses": {
+		"type": "MIT"
+	},
+	"scripts": {
+		"test": "tap tests/*.js"
+	},
+	"main": "index.js",
 	"dependencies": {
 		"mysql": "~2.0.0-alpha7",
-		"underscore": "~1.4.3",
-		"async": "~0.1.22"
+		"underscore": "~1.4.4",
+		"async": "~0.2.5"
+	},
+	"devDependencies": {
+		"tap": "~0.4.0"
+	},
+	"optionalDependencies": {},
+	"engines": {
+		"node": "*"
+	},
+	"publishConfig": {
+		"registry": "https://registry.npmjs.com/"
 	}
 }
