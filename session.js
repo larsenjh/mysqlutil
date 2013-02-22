@@ -3,7 +3,7 @@ var _ = require('underscore');
 var async = require('async');
 var util = require('util');
 var fs = require('fs');
-var insertModes = require('./insertModes.js');
+var insertModes = require('./util/insertModes.js');
 
 var concurrencyLimit = 10;
 var bulkInsertBatchSize = 1000;
@@ -103,10 +103,12 @@ module.exports = function (conn) {
 			insertMode: obj.defaultInsertMode,
 			enforceRules: true,
 			ignore: false,
-			replace: false
+			replace: false,
+			upsert: false
 		});
 
-		if (items.length > 1) {
+		// sorry, no bulk upsert
+		if (items.length > 1 && !options.upsert) {
 			var idx = 0;
 			var insertedItems = [];
 			async.whilst(

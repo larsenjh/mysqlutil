@@ -1,5 +1,5 @@
 var _ = require('underscore');
-var mysql = require('mysql'); // npm install mysql@2.0.0-alpha3
+var mysql = require('mysql');
 var session = require('./session');
 
 exports.connect = function (settings, cb) {
@@ -17,6 +17,6 @@ exports.connect = function (settings, cb) {
 		cb(err, exports.session);
 	});
 };
-exports.insertModes = require('./insertModes.js');
-exports.utils = require('./utils.js');
+exports.insertModes = require('./util/insertModes.js');
+exports.utils = require('./util/dateHelper.js');
 exports.session = {};
