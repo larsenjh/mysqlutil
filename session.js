@@ -42,10 +42,10 @@ module.exports = function (conn) {
 
 	function bulkInsert(tableName, items, insertCb, options) {
 		async.forEach(items,
-			function (item, forEachCb) {
+			function (item, eachCb) {
 				hiloRef.computeNextKey(obj, function hiloCb(nextKey) {
 					item.$insertId = item[hiloRef.keyName] = nextKey;
-					forEachCb();
+					eachCb();
 				});
 			},
 			function insertItems(err) {
@@ -110,10 +110,7 @@ module.exports = function (conn) {
 			upsert: false
 		});
 
-		if (items.length > 1 && options.upsert)
-			return insertCb(new Error('Bulk upsert is not supported'));
-
-		if (items.length > 1) {
+		if (items.length > 1 && !options.upsert) {
 			var idx = 0;
 			var insertedItems = [];
 			async.whilst(
@@ -136,25 +133,31 @@ module.exports = function (conn) {
 			return;
 		}
 
-		var item = items[0];
-		async.series([
-			function (sCb) {
-				if(options.insertMode != insertModes.hilo) return sCb();
-				hiloRef.computeNextKey(obj, function hiloCb(nextKey) {
-					item.$insertId = item[hiloRef.keyName] = nextKey;
-					sCb();
-				});
+		var stack = [];
+		async.eachLimit(items, concurrencyLimit,
+			function (item, eachCb) {
+				if (options.insertMode === insertModes.hilo) {
+					hiloRef.computeNextKey(obj, function hiloCb(nextKey) {
+						item.$insertId = item[hiloRef.keyName] = nextKey;
+						insertItem(function insertItemCb(err, result) {
+							if (err) return insertCb(err);
+							result.insertId = item.$insertId;
+							stack.push(result);
+							eachCb();
+						}, item, options);
+					});
+				} else {
+					insertItem(function insertItemCb(err, result) {
+						if (err) return insertCb(err);
+						stack.push(result);
+						eachCb();
+					}, item, options);
+				}
 			},
-			function (sCb) {
-				insertItem(sCb, item, options);
+			function eachFinalCb(err) {
+				insertCb(null, stack.length > 1 ? stack : stack[0]);
 			}
-		], function (err, res) {
-			if(item.$insertId) {
-				item.insertId = item.$insertId;
-				delete item.$insertId;
-			}
-			insertCb(err, item);
-		});
+		);
 
 		function insertItem(insertItemCb, item, options) {
 			var sql = [];
@@ -213,8 +216,8 @@ module.exports = function (conn) {
 
 		var stack = [];
 
-		async.forEachLimit(items, concurrencyLimit,
-			function (item, forEachCb) {
+		async.eachLimit(items, concurrencyLimit,
+			function (item, eachCb) {
 				if (!item.$key && !item.$where)
 					return updateCb(new Error("either $key or $where is required on each item"));
 
@@ -248,49 +251,14 @@ module.exports = function (conn) {
 				query(sql, values, function queryCb(err, result) {
 					if (err) updateCb(err);
 					stack.push(result);
-					forEachCb();
+					eachCb();
 				});
 			},
-			function finalForeachCb(err) {
+			function finalEachCb(err) {
 				if (err) updateCb(err);
 				updateCb(err, stack.length > 1 ? stack : stack[0]);
 			}
 		);
-	}
-
-	function upsert(tableName, items, upsertCb, options) {
-		update(tableName, items, function updateCb(err, updateResults) {
-			if (err) return upsertCb(err);
-			updateResults = _.isArray(updateResults) ? updateResults : [updateResults];
-			// throw an index onto each updateResult so we can trace it back to its item
-			var tmp = [];
-			_.each(updateResults, function (updateResult, index, list) {
-				updateResult.$index = index;
-				tmp[index] = updateResult;
-			});
-			updateResults = tmp;
-			var stack = [];
-
-			async.forEach(updateResults,
-				function (updateResult, forEachCb) {
-					if (updateResult.affectedRows === 0) {
-						insert(tableName, items[updateResult.$index], function insertCb(err, result) {
-							if (err) return upsertCb(err);
-							stack.push(updateResult);
-							forEachCb();
-						}, options);
-					}
-					else {
-						stack.push(updateResult);
-						forEachCb();
-					}
-				},
-				function forEachCompleteCb(err) {
-					if (err) return upsertCb(err);
-					upsertCb(null, stack.length > 1 ? stack : stack[0]);
-				}
-			);
-		}, options);
 	}
 
 	function disconnect(cb) {
@@ -373,7 +341,6 @@ module.exports = function (conn) {
 		},
 		insert: insert,
 		update: update,
-		upsert: upsert,
 
 		startTransaction: transactions.startTransaction,
 		commit: transactions.commit,

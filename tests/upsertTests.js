@@ -9,38 +9,83 @@ var dateHelper = require('../util/dateHelper.js');
 test('a simple upsert works', function (t) {
 	var item = generateTestItems(1)[0];
 
-	t.test('Sets up test', function(t) {
-		setup(function(err,res) {
+	t.test('Sets up test', function (t) {
+		setup(function (err, res) {
 			t.end();
 		});
 	});
 
-	t.test('Creates test item', function(t) {
+	t.test('Creates test item', function (t) {
 		harness.db.insert('tmp', item, function (err, result) {
-			t.notOk(err, "no errors were thrown on insert");
+			t.notOk(err, "no errors were thrown on insert, got: " + err);
 			t.end();
-		}, {insertMode:insertModes.custom});
+		}, {insertMode: insertModes.custom});
 	});
 
-	t.test('Upsert test item', function(t) {
+	t.test('Upsert test item', function (t) {
 		item = _.extend(item, {
 			name: 'Test Name Updated'
 		});
 		harness.db.insert('tmp', item, function (err, result) {
-			t.notOk(err, "no errors were thrown on upsert ");
+			t.notOk(err, "no errors were thrown on upsert, got: " + err);
 
-			harness.db.query("SELECT name FROM tmp WHERE id = ?", [item.id], function(err,res) {
+			harness.db.query("SELECT name FROM tmp WHERE id = ?", [item.id], function (err, res) {
 				t.equal(item.name, res[0].name, "upsert updated test item's name");
 				t.end();
 			});
 		}, {
-			insertMode:insertModes.custom,
-			upsert:true
+			insertMode: insertModes.custom,
+			upsert: true
 		});
 	});
 
-	t.test('Tears down test', function(t) {
-		tearDown(function(err,res) {
+	t.test('Tears down test', function (t) {
+		tearDown(function (err, res) {
+			t.end();
+		});
+	});
+});
+
+test('a multiple upsert works', function (t) {
+	var items = generateTestItems(5);
+
+	t.test('Sets up test', function (t) {
+		setup(function (err, res) {
+			t.end();
+		});
+	});
+
+	t.test('Creates test item', function (t) {
+		harness.db.insert('tmp', items, function (err, result) {
+			t.notOk(err, "no errors were thrown on insert, got: " + err);
+			t.end();
+		}, {insertMode: insertModes.custom});
+	});
+
+	t.test('Upsert test item', function (t) {
+		var newName = 'Test Name Updated';
+		items = _.map(items, function (item) {
+			delete item.insertId;
+			item.name = newName;
+			return item;
+		});
+		harness.db.insert('tmp', items, function (err, result) {
+			t.notOk(err, "no errors were thrown on upsert, got: " + err);
+
+			harness.db.query("SELECT name FROM tmp", [], function (err, res) {
+				_.each(res, function (newItem) {
+					t.equal(newItem.name, newName, "upsert updated test item's name");
+				});
+				t.end();
+			});
+		}, {
+			insertMode: insertModes.custom,
+			upsert: true
+		});
+	});
+
+	t.test('Tears down test', function (t) {
+		tearDown(function (err, res) {
 			t.end();
 		});
 	});

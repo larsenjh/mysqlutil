@@ -21,7 +21,7 @@ test('an insert using hilo works', function (t) {
 	var newItem = { created: new Date(), name: "This is a test" };
 	runTest(t, function (cb) {
 		harness.db.insert('tmp', newItem, function (err, result) {
-			t.notOk(err, "no errors were thrown on insert");
+			t.notOk(err, "no errors were thrown on insert, got: "+err);
 			cb();
 		});
 	});
@@ -29,7 +29,6 @@ test('an insert using hilo works', function (t) {
 
 test('an insert supplied with a UTC date persists that date without altering it', function (t) {
 	var nowUtc = dateHelper.utcNow();
-
 	var newItem = {created: nowUtc, name: "This is a test"};
 	var newId = -1;
 
@@ -37,7 +36,7 @@ test('an insert supplied with a UTC date persists that date without altering it'
 		async.series([
 			function doInsert(seriesCb) {
 				harness.db.insert('tmp', newItem, function (err, result) {
-					t.notOk(err, "no errors were thrown on insert");
+					t.notOk(err, "no errors were thrown on insert, got: "+err);
 					t.ok(result.insertId, "insertId was passed back after insert");
 					newId = result.insertId;
 					seriesCb();
