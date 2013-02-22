@@ -110,8 +110,10 @@ module.exports = function (conn) {
 			upsert: false
 		});
 
-		// sorry, no bulk upsert
-		if (items.length > 1 && !options.upsert) {
+		if (items.length > 1 && options.upsert)
+			return insertCb(new Error('Bulk upsert is not supported'));
+
+		if (items.length > 1) {
 			var idx = 0;
 			var insertedItems = [];
 			async.whilst(
@@ -181,7 +183,20 @@ module.exports = function (conn) {
 				});
 			}
 
-			sql.push(fields.join(','), ') VALUES (', expressions.join(','), ');');
+			sql.push(fields.join(','), ') VALUES (', expressions.join(','), ')');
+
+			if(options.upsert) {
+				sql.push(' ON DUPLICATE KEY UPDATE ');
+				var fields = updateHelper.buildColsValues({
+					item: item,
+					tableName: tableName,
+					updateRules: options.enforceRules ? obj.updateRules : null
+				});
+				sql.push(fields);
+				expressions = expressions.concat(expressions);
+				values = values.concat(values);
+			}
+
 			sql = sql.join('');
 
 			query(sql, values, function queryCb(err, result) {

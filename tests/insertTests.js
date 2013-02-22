@@ -2,6 +2,7 @@
 var _ = require('underscore');
 var test = require('tap').test;
 var async = require('async');
+var insertModes = require('../util/insertModes.js');
 var harness = require('./helpers/harness.js');
 var dateHelper = require('../util/dateHelper.js');
 
