@@ -106,8 +106,7 @@ module.exports = function (conn) {
 			insertMode: obj.defaultInsertMode,
 			enforceRules: true,
 			ignore: false,
-			replace: false,
-			upsert: false
+			replace: false
 		});
 
 		if (items.length > 1 && !options.upsert) {
@@ -133,31 +132,22 @@ module.exports = function (conn) {
 			return;
 		}
 
-		var stack = [];
-		async.eachLimit(items, concurrencyLimit,
-			function (item, eachCb) {
-				if (options.insertMode === insertModes.hilo) {
-					hiloRef.computeNextKey(obj, function hiloCb(nextKey) {
-						item.$insertId = item[hiloRef.keyName] = nextKey;
-						insertItem(function insertItemCb(err, result) {
-							if (err) return insertCb(err);
-							result.insertId = item.$insertId;
-							stack.push(result);
-							eachCb();
-						}, item, options);
-					});
-				} else {
-					insertItem(function insertItemCb(err, result) {
-						if (err) return insertCb(err);
-						stack.push(result);
-						eachCb();
-					}, item, options);
-				}
+		var item = items[0];
+		async.series([
+			function (sCb) {
+				hiloRef.computeNextKey(obj, function hiloCb(nextKey) {
+					item.$insertId = item[hiloRef.keyName] = nextKey;
+					sCb();
+				});
 			},
-			function eachFinalCb(err) {
-				insertCb(null, stack.length > 1 ? stack : stack[0]);
+			function (sCb) {
+				insertItem(sCb, item, options);
 			}
-		);
+		], function (err, res) {
+			item.insertId = item.$insertId;
+			delete item.$insertId;
+			insertCb(err, item);
+		});
 
 		function insertItem(insertItemCb, item, options) {
 			var sql = [];
@@ -187,18 +177,6 @@ module.exports = function (conn) {
 			}
 
 			sql.push(fields.join(','), ') VALUES (', expressions.join(','), ')');
-
-			if(options.upsert) {
-				sql.push(' ON DUPLICATE KEY UPDATE ');
-				var fields = updateHelper.buildColsValues({
-					item: item,
-					tableName: tableName,
-					updateRules: options.enforceRules ? obj.updateRules : null
-				});
-				sql.push(fields);
-				expressions = expressions.concat(expressions);
-				values = values.concat(values);
-			}
 
 			sql = sql.join('');
 
@@ -259,6 +237,80 @@ module.exports = function (conn) {
 				updateCb(err, stack.length > 1 ? stack : stack[0]);
 			}
 		);
+	}
+
+	function upsert(tableName, items, insertCb, options) {
+		items = _.isArray(items) ? items : [items];
+		options = _.defaults(options || {}, {
+			insertMode: obj.defaultInsertMode,
+			enforceRules: true
+		});
+
+		var stack = [];
+		async.eachLimit(items, concurrencyLimit,
+			function (item, eachCb) {
+				if (options.insertMode === insertModes.hilo) {
+					hiloRef.computeNextKey(obj, function hiloCb(nextKey) {
+						item.$insertId = item[hiloRef.keyName] = nextKey;
+						upsertItem(function upsertItemCb(err, result) {
+							if (err) return insertCb(err);
+							result.insertId = item.$insertId;
+							stack.push(result);
+							eachCb();
+						}, item, options);
+					});
+				} else {
+
+					upsertItem(function upsertItemCb(err, result) {
+						if (err) return insertCb(err);
+						stack.push(result);
+						eachCb();
+					}, item, options);
+				}
+			},
+			function eachFinalCb(err) {
+				insertCb(null, stack.length > 1 ? stack : stack[0]);
+			}
+		);
+
+		function upsertItem(upsertItemCb, item, options) {
+			var sql = ['INSERT INTO ', tableName, ' ('];
+
+			var fields = [];
+			var values = [];
+			var expressions = [];
+
+			_.each(item, function (value, field) {
+				if (field.charAt(0) !== '$') {
+					fields.push(field);
+					expressions.push('?');
+					values.push(value);
+				}
+			});
+
+			if (options.enforceRules) {
+				_.each(obj.insertRules, function (rule) {
+					rule(item, fields, values, expressions, tableName);
+				});
+			}
+
+			sql.push(fields.join(','), ') VALUES (', expressions.join(','), ') ON DUPLICATE KEY UPDATE ');
+
+			var fields = updateHelper.buildColsValues({
+				item: item,
+				tableName: tableName,
+				updateRules: options.enforceRules ? obj.updateRules : null
+			});
+			sql.push(fields);
+			expressions = expressions.concat(expressions);
+			values = values.concat(values);
+
+			sql = sql.join('');
+
+			query(sql, values, function queryCb(err, result) {
+				upsertItemCb(err, result);
+			});
+		}
 	}
 
 	function disconnect(cb) {
@@ -341,6 +393,7 @@ module.exports = function (conn) {
 		},
 		insert: insert,
 		update: update,
+		upsert: upsert,
 
 		startTransaction: transactions.startTransaction,
 		commit: transactions.commit,

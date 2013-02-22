@@ -27,6 +27,7 @@ test('a simple update works', function (t) {
 			name: 'Test Name Updated',
 			$key: 'id'
 		});
+		delete item.insertId;
 
 		harness.db.update('tmp', item, function (err, res) {
 			t.notOk(err, "no errors were thrown on update");

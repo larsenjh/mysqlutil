@@ -26,7 +26,9 @@ test('a simple upsert works', function (t) {
 		item = _.extend(item, {
 			name: 'Test Name Updated'
 		});
-		harness.db.insert('tmp', item, function (err, result) {
+		delete item.insertId;
+
+		harness.db.upsert('tmp', item, function (err, result) {
 			t.notOk(err, "no errors were thrown on upsert, got: " + err);
 
 			harness.db.query("SELECT name FROM tmp WHERE id = ?", [item.id], function (err, res) {
@@ -34,8 +36,7 @@ test('a simple upsert works', function (t) {
 				t.end();
 			});
 		}, {
-			insertMode: insertModes.custom,
-			upsert: true
+			insertMode: insertModes.custom
 		});
 	});
 
@@ -72,15 +73,14 @@ test('a multiple upsert works', function (t) {
 		harness.db.insert('tmp', items, function (err, result) {
 			t.notOk(err, "no errors were thrown on upsert, got: " + err);
 
-			harness.db.query("SELECT name FROM tmp", [], function (err, res) {
+			harness.db.upsert("SELECT name FROM tmp", [], function (err, res) {
 				_.each(res, function (newItem) {
 					t.equal(newItem.name, newName, "upsert updated test item's name");
 				});
 				t.end();
 			});
 		}, {
-			insertMode: insertModes.custom,
-			upsert: true
+			insertMode: insertModes.custom
 		});
 	});
 
