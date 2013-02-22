@@ -10,7 +10,7 @@ var concurrencyLimit = 10;
 var bulkInsertBatchSize = 1000;
 
 module.exports = function (conn) {
-	var transactions = require('./transactions.js')(conn);
+	var transactions = require('./util/transactions.js')(conn);
 	var hiloRef = hilo();
 
 	function log() {
