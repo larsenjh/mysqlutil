@@ -4,11 +4,11 @@ var _ = require('underscore');
 module.exports = function(params, cb) {
 	var sql = [];
 	if (params.replace) {
-		sql.push('REPLACE ');
+		sql.push('REPLACE');
 	} else {
-		sql.push('INSERT ', (params.ignore ? 'IGNORE ' : ' '));
+		sql.push('INSERT', (params.ignore ? 'IGNORE' : ''));
 	}
-	sql.push('INTO ', params.tableName, ' (');
+	sql.push(' INTO ', params.tableName, ' (');
 
 	var fields = [];
 	var values = [];
@@ -28,7 +28,7 @@ module.exports = function(params, cb) {
 		});
 	}
 
-	sql.push(fields.join(','), ') VALUES (', expressions.join(','), ')');
+	sql.push(fields.join(', '), ') VALUES (', expressions.join(', '), ')');
 
 	cb(null, {
 		sql: sql.join(''),

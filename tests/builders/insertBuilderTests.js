@@ -1,11 +1,11 @@
 "use strict";
 var test = require('tap').test;
-var updateBuilder = require('../../sqlBuilders/updateBuilder.js');
+var updateBuilder = require('../../sqlBuilders/insertBuilder.js');
 
-test('Constructs a simple update', function (t) {
+test('Constructs a simple insert', function (t) {
 	var item = { id: 1, name: 'Test', color: 'Blue' };
 
-	var expectedSQL = 'UPDATE test SET id = ?, name = ?, color = ? WHERE id = ?;';
+	var expectedSQL = 'INSERT INTO test (id, name, color) VALUES (?, ?, ?)';
 
 	updateBuilder({
 		item: item,
@@ -18,7 +18,7 @@ test('Constructs a simple update', function (t) {
 	});
 });
 
-test('Constructs a simple update with rules', function (t) {
+test('Constructs a simple insert with rules', function (t) {
 	var item = { id: 1, name: 'Test', color: 'Blue' };
 
 	var rules = [function(item, fields, values, expressions, tableName) {
@@ -29,7 +29,7 @@ test('Constructs a simple update with rules', function (t) {
 			values.push('UTC_TIMESTAMP');
 	}];
 
-	var expectedSQL = 'UPDATE test SET id = ?, name = ?, color = ?, modified = UTC_TIMESTAMP WHERE id = ?;';
+	var expectedSQL = 'INSERT INTO test (id, name, color, modified) VALUES (?, ?, ?, UTC_TIMESTAMP)';
 
 	updateBuilder({
 		item: item,

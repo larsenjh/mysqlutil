@@ -24,9 +24,9 @@ module.exports = function (params, cb) {
 	}
 
 	for (var i = fields.length; i--;)
-		fields[i] += '=' + expressions[i];
+		fields[i] += ' = ' + expressions[i];
 
-	sql.push(fields.join(','));
+	sql.push(fields.join(', '));
 
 	// WHERE clause
 	if (params.item.$where) {
@@ -36,11 +36,11 @@ module.exports = function (params, cb) {
 		}
 	}
 	else if (params.item.$key) {
-		params.item.$where = params.item.$key + '=?';
+		params.item.$where = params.item.$key + ' = ?';
 		values.push(params.item.$key);
 	}
 	else {
-		params.item.$where = params.defaultKeyName + '=?';
+		params.item.$where = params.defaultKeyName + ' = ?';
 		values.push(params.item.$key);
 	}
 
