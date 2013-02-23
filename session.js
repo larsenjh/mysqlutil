@@ -4,7 +4,6 @@ var async = require('async');
 var util = require('util');
 var fs = require('fs');
 var insertModes = require('./util/insertModes.js');
-var updateHelper = require('./util/updateHelper.js');
 var updateBuilder = require('./sqlBuilders/updateBuilder.js');
 var insertBuilder = require('./sqlBuilders/insertBuilder.js');
 var bulkInsertBuilder = require('./sqlBuilders/bulkInsertBuilder.js');
