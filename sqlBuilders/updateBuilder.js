@@ -2,6 +2,9 @@
 var _ = require('underscore');
 
 module.exports = function (params, cb) {
+	if (!params.item.$where && !params.item.$key)
+		return cb(new Error('Either $key or $where should be passed'));
+
 	var sql = [];
 	var fields = [];
 	var values = [];
@@ -29,19 +32,12 @@ module.exports = function (params, cb) {
 	sql.push(fields.join(', '));
 
 	// WHERE clause
-	if (params.item.$where) {
-		if (_.isArray(params.item.$where)) {
-			values = values.concat(_.rest(params.item.$where));
-			params.item.$where = params.item.$where[0];
-		}
-	}
-	else if (params.item.$key) {
-		params.item.$where = params.item.$key + ' = ?';
+	if (!params.item.$where) {
+		params.item.$where = params.defaultKeyName + '=?';
 		values.push(params.item.$key);
-	}
-	else {
-		params.item.$where = params.defaultKeyName + ' = ?';
-		values.push(params.item.$key);
+	} else if (_.isArray(params.item.$where)) {
+		values = values.concat(_.rest(params.item.$where));
+		params.item.$where = params.item.$where[0];
 	}
 
 	sql.push(' WHERE ', params.item.$where, ';');

@@ -1,44 +1,50 @@
-/** TODO - test returned values */
+// TODO - need tests using $key
 "use strict";
 var test = require('tap').test;
+var _ = require('underscore');
+var dateHelper = require('../../util/dateHelper.js');
 var updateBuilder = require('../../sqlBuilders/updateBuilder.js');
 
 test('Constructs a simple update', function (t) {
-	var item = { id: 1, name: 'Test', color: 'Blue' };
-
-	var expectedSQL = 'UPDATE test SET id = ?, name = ?, color = ? WHERE id = ?;';
+	var item = { name: 'Test', color: 'Blue', $where: 'id = 1' };
+	var expectedSQL = 'UPDATE test SET name = ?, color = ? WHERE id = 1;';
+	var expectedValues = _.values(item).slice(0, 2);
 
 	updateBuilder({
 		item: item,
 		tableName: 'test',
 		defaultKeyName: 'id'
-	}, function(err,res) {
-		t.notOk(err, "Does not return an error, received: "+err);
+	}, function (err, res) {
+		t.notOk(err, "Does not return an error, received: " + err);
 		t.equal(res.sql, expectedSQL, "Returns the expected SQL");
+		t.deepEqual(res.values, expectedValues, "Return the expected values");
 		t.end();
 	});
 });
 
 test('Constructs a simple update with rules', function (t) {
-	var item = { id: 1, name: 'Test', color: 'Blue' };
+	var now = dateHelper.utcNow();
+	var item = { name: 'Test', color: 'Blue', $where: 'id = 1' };
+	var expectedValues = _.values(item).slice(0, 2).concat(now);
+	var expectedSQL = 'UPDATE test SET name = ?, color = ?, modified = ' + now + ' WHERE id = 1;';
 
-	var rules = [function(item, fields, values, expressions, tableName) {
+	var rules = [function (_item, fields, values, expressions, tableName) {
 		fields.push('modified');
-		if(expressions)
-			expressions.push('UTC_TIMESTAMP');
-		else
-			values.push('UTC_TIMESTAMP');
+		if (expressions)
+			expressions.push(now);
+		if (values)
+			values.push(now);
 	}];
-
-	var expectedSQL = 'UPDATE test SET id = ?, name = ?, color = ?, modified = UTC_TIMESTAMP WHERE id = ?;';
 
 	updateBuilder({
 		item: item,
 		tableName: 'test',
 		rules: rules,
 		defaultKeyName: 'id'
-	}, function(err,res) {
-		t.equal(res.sql, expectedSQL, "Returns columns-values section for UPDATE");
+	}, function (err, res) {
+		t.notOk(err, "Does not return an error, received: "+err);
+		t.equal(res.sql, expectedSQL, "Returns the expected SQL");
+		t.deepEqual(res.values, expectedValues, "Return the expected values");
 		t.end();
 	});
 });

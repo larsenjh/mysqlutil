@@ -16,7 +16,7 @@ exports.createTable = function(options, cb) {
 
 exports.connect = function(cb) {
 	mysqlUtil.connect({
-		host: process.env.MYSQL_HOST || '192.168.66.146',
+		host: process.env.MYSQL_HOST || 'localhost',
 		user: process.env.MYSQL_USER || 'root',
 		password: process.env.MYSQL_PASSWORD || '',
 		database: process.env.MYSQL_DATABASE || 'beaches_int'
