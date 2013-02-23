@@ -16,12 +16,13 @@ exports.createTable = function(options, cb) {
 
 exports.connect = function(cb) {
 	mysqlUtil.connect({
-		host: process.env.MYSQL_HOST || 'localhost',
+		host: process.env.MYSQL_HOST || '192.168.66.146',
 		user: process.env.MYSQL_USER || 'root',
 		password: process.env.MYSQL_PASSWORD || '',
 		database: process.env.MYSQL_DATABASE || 'beaches_int'
 	}, function (err, session) {
 		exports.db = session;
+		exports.db.logging = true;
 		cb();
 	});
 }

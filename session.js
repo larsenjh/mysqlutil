@@ -5,6 +5,10 @@ var util = require('util');
 var fs = require('fs');
 var insertModes = require('./util/insertModes.js');
 var updateHelper = require('./util/updateHelper.js');
+var updateBuilder = require('./sqlBuilders/updateBuilder.js');
+var insertBuilder = require('./sqlBuilders/insertBuilder.js');
+var bulkInsertBuilder = require('./sqlBuilders/bulkInsertBuilder.js');
+var upsertBuilder = require('./sqlBuilders/upsertBuilder.js');
 
 var concurrencyLimit = 10;
 var bulkInsertBatchSize = 1000;
@@ -50,52 +54,28 @@ module.exports = function (conn) {
 			},
 			function insertItems(err) {
 				if (err) return insertCb(err);
-				var sql = [];
-				if (options.replace) {
-					sql.push('REPLACE ');
-				} else {
-					sql.push('INSERT ', (options.ignore ? 'IGNORE ' : ' '));
-				}
-				sql.push('INTO ', tableName, ' ');
+				bulkInsertBuilder({
+					replace:options.replace,
+					ignore:options.ignore,
+					tableName:tableName,
+					items: items,
+					rules: options.enforceRules ? obj.insertRules : null
+				}, function(err, insertInfo) {
+					if(err) return insertCb(err);
 
-				// use the 1st item to get our fields
-				var fields = _.filter(_.keys(items[0]), function (key) {
-					return key.charAt(0) !== '$';
-				});
-
-				if (options.enforceRules) {
-					_.each(obj.insertRules, function (rule) {
-						rule(null, fields, null, null, tableName);
-					});
-				}
-
-				sql.push('(', fields.join(','), ') VALUES ? ');
-
-				var rows = []; // values needs to be a 2-d array for bulk INSERT
-				_.each(items, function (item) {
-					if (options.enforceRules) {
-						_.each(obj.insertRules, function (rule) {
-							rule(item, null, null, null, tableName);
+					query(insertInfo.sql, insertInfo.values, function queryCb(err, result) {
+						// $insertId -> insertId
+						items = _.map(items, function (item) {
+							if(item.$insertId) {
+								item.insertId = item.$insertId;
+								delete item.$insertId;
+							}
+							return item;
 						});
-					}
-					rows.push(
-						_.map(fields, function (field) {
-							return item[field];
-						})
-					);
+						insertCb(err, items);
+					});
 				});
 
-				query(sql.join(''), [rows], function queryCb(err, result) {
-					// $insertId -> insertId
-					items = _.map(items, function (item) {
-						if(item.$insertId) {
-							item.insertId = item.$insertId;
-							delete item.$insertId;
-						}
-						return item;
-					});
-					insertCb(err, items);
-				});
 			}
 		);
 	}
@@ -150,38 +130,18 @@ module.exports = function (conn) {
 		});
 
 		function insertItem(insertItemCb, item, options) {
-			var sql = [];
-			if (options.replace) {
-				sql.push('REPLACE ');
-			} else {
-				sql.push('INSERT ', (options.ignore ? 'IGNORE ' : ' '));
-			}
-			sql.push('INTO ', tableName, ' (');
+			insertBuilder({
+				item:item,
+				tableName:tableName,
+				rules: options.enforceRules ? obj.insertRules : null,
+				replace: options.replace,
+				ignore: options.ignore
+			}, function(err, insertInfo) {
+				if(err) return insertItemCb(err);
 
-			var fields = [];
-			var values = [];
-			var expressions = [];
-
-			_.each(item, function (value, field) {
-				if (field.charAt(0) !== '$') {
-					fields.push(field);
-					expressions.push('?');
-					values.push(value);
-				}
-			});
-
-			if (options.enforceRules) {
-				_.each(obj.insertRules, function (rule) {
-					rule(item, fields, values, expressions, tableName);
+				query(insertInfo.sql, insertInfo.values, function queryCb(err, result) {
+					insertItemCb(err, result);
 				});
-			}
-
-			sql.push(fields.join(','), ') VALUES (', expressions.join(','), ')');
-
-			sql = sql.join('');
-
-			query(sql, values, function queryCb(err, result) {
-				insertItemCb(err, result);
 			});
 		}
 	}
@@ -196,40 +156,19 @@ module.exports = function (conn) {
 
 		async.eachLimit(items, concurrencyLimit,
 			function (item, eachCb) {
-				if (!item.$key && !item.$where)
-					return updateCb(new Error("either $key or $where is required on each item"));
-
-				var sql = [];
-				sql.push('UPDATE ', tableName, ' SET ');
-
-				var fields = updateHelper.buildColsValues({
+				updateBuilder({
 					item: item,
 					tableName: tableName,
-					updateRules: options.enforceRules ? obj.updateRules : null
-				});
-				sql.push(fields);
+					rules: options.enforceRules ? obj.updateRules : null,
+					defaultKeyName: obj.defaultKeyName
+				}, function(err, updateInfo) {
+					if(err) return updateCb(err);
 
-				var values = [];
-				_.each(item, function (value, field) {
-					if (field.charAt(0) !== '$')
-						values.push(value);
-				});
-
-				if (!item.$where) {
-					item.$where = obj.defaultKeyName + '=?';
-					values.push(item.$key);
-				} else if (_.isArray(item.$where)) {
-					values = values.concat(_.rest(item.$where));
-					item.$where = item.$where[0];
-				}
-				sql.push(' WHERE ', item.$where, ';');
-
-				sql = sql.join('');
-
-				query(sql, values, function queryCb(err, result) {
-					if (err) updateCb(err);
-					stack.push(result);
-					eachCb();
+					query(updateInfo.sql, updateInfo.values, function queryCb(err, result) {
+						if (err) updateCb(err);
+						stack.push(result);
+						eachCb();
+					});
 				});
 			},
 			function finalEachCb(err) {
@@ -274,41 +213,15 @@ module.exports = function (conn) {
 		);
 
 		function upsertItem(upsertItemCb, item, options) {
-			var sql = ['INSERT INTO ', tableName, ' ('];
-
-			var fields = [];
-			var values = [];
-			var expressions = [];
-
-			_.each(item, function (value, field) {
-				if (field.charAt(0) !== '$') {
-					fields.push(field);
-					expressions.push('?');
-					values.push(value);
-				}
-			});
-
-			if (options.enforceRules) {
-				_.each(obj.insertRules, function (rule) {
-					rule(item, fields, values, expressions, tableName);
-				});
-			}
-
-			sql.push(fields.join(','), ') VALUES (', expressions.join(','), ') ON DUPLICATE KEY UPDATE ');
-
-			var fields = updateHelper.buildColsValues({
+			upsertBuilder({
 				item: item,
-				tableName: tableName,
-				updateRules: options.enforceRules ? obj.updateRules : null
-			});
-			sql.push(fields);
-			expressions = expressions.concat(expressions);
-			values = values.concat(values);
-
-			sql = sql.join('');
-
-			query(sql, values, function queryCb(err, result) {
-				upsertItemCb(err, result);
+				insertRules: options.enforceRules ? obj.insertRules : null,
+				updateRules: options.enforceRules ? obj.updateRules : null,
+				tableName: tableName
+			}, function(err, upsertInfo) {
+				query(upsertInfo.sql, upsertInfo.values, function queryCb(err, result) {
+					upsertItemCb(err, result);
+				});
 			});
 		}
 	}
