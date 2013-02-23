@@ -4,6 +4,7 @@ var updateBuilder = require('../../sqlBuilders/updateBuilder.js');
 
 test('Constructs a simple update', function (t) {
 	var item = { id: 1, name: 'Test', color: 'Blue' };
+
 	var expectedSQL = 'UPDATE test SET id=?,name=?,color=? WHERE id=?;';
 
 	updateBuilder({
@@ -12,13 +13,14 @@ test('Constructs a simple update', function (t) {
 		defaultKeyName: 'id'
 	}, function(err,res) {
 		t.notOk(err, "Does not return an error, received: "+err);
-		t.equal(res, expectedSQL, "Returns the expected SQL");
+		t.equal(res.sql, expectedSQL, "Returns the expected SQL");
 		t.end();
 	});
 });
-/*
+
 test('Constructs a simple update with rules', function (t) {
 	var item = { id: 1, name: 'Test', color: 'Blue' };
+
 	var updateRules = [function(item, fields, values, expressions, tableName) {
 		fields.push('modified');
 		if(expressions)
@@ -26,15 +28,16 @@ test('Constructs a simple update with rules', function (t) {
 		else
 			values.push('UTC_TIMESTAMP');
 	}];
-	var expectedString = 'id=?,name=?,color=?,modified=UTC_TIMESTAMP';
 
-	var res = updateBuilder({
+	var expectedSQL = 'UPDATE test SET id=?,name=?,color=?,modified=UTC_TIMESTAMP WHERE id=?;';
+
+	updateBuilder({
 		item: item,
 		tableName: 'test',
-		rules: updateRules
+		rules: updateRules,
+		defaultKeyName: 'id'
+	}, function(err,res) {
+		t.equal(res.sql, expectedSQL, "Returns columns-values section for UPDATE");
+		t.end();
 	});
-
-	t.equal(res, expectedString, "Returns columns-values section for UPDATE");
-	t.end();
 });
-*/
