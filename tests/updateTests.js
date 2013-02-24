@@ -6,16 +6,12 @@ var insertModes = require('../util/insertModes.js');
 var harness = require('./helpers/harness.js');
 var dateHelper = require('../util/dateHelper.js');
 
-test("Connects to the database", function (t) {
-	harness.connect(function (err, res) {
-		t.end();
-	});
-});
+test("Connects to the database", harness.connect);
 
 test('a simple update works', function (t) {
-	var item = generateTestItems(1)[0];
+	var item = harness.generateTestItems(1)[0];
 
-	t.test('Setup', setup);
+	t.test('Setup', harness.setupTmpTable);
 
 	t.test('Creates test item', function(t) {
 		harness.db.insert('tmp', item, function (err, result) {
@@ -37,43 +33,7 @@ test('a simple update works', function (t) {
 		}, {enforceRules: false});
 	});
 
-	t.test('Teardown', tearDown);
+	t.test('Teardown', harness.tearDown);
 });
 
-test("Disconnects from the database", function (t) {
-	harness.disconnect(function (err, res) {
-		t.end();
-	});
-});
-
-function generateTestItems(amt) {
-	var items = [];
-	for (var i = 0; i < amt; i++)
-		items[i] = {id: i, name: 'test ' + i, created: dateHelper.utcNow()};
-	return items;
-}
-
-function setup(t, createTableOptions) {
-	createTableOptions = createTableOptions || {tempTable: true};
-	t.test("Drops test table", function (t) {
-		harness.dropTable(function (err, res) {
-			t.end();
-		});
-	});
-	t.test("Creates test table", function (t) {
-		harness.createTable(createTableOptions, function (err, res) {
-			t.end();
-		});
-	});
-	t.end();
-}
-
-function tearDown(t) {
-	t.test("Drops test table", function (t) {
-		harness.dropTable(function (err, res) {
-			t.end();
-		});
-	});
-	t.end();
-}
-
+test("Disconnects from the database", harness.disconnect);

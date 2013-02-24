@@ -1,5 +1,6 @@
 "use strict";
 var mysqlUtil = require('../../.');
+var dateHelper = require('../../util/dateHelper.js');
 exports.db = null;
 
 exports.createTable = function(options, cb) {
@@ -14,7 +15,7 @@ exports.createTable = function(options, cb) {
 	exports.db.query(sql, cb);
 }
 
-exports.connect = function(cb) {
+exports.connect = function(t) {
 	mysqlUtil.connect({
 		host: process.env.MYSQL_HOST || 'localhost',
 		user: process.env.MYSQL_USER || 'root',
@@ -23,7 +24,7 @@ exports.connect = function(cb) {
 	}, function (err, session) {
 		exports.db = session;
 		exports.db.logging = true;
-		cb();
+		t.end();
 	});
 }
 
@@ -31,6 +32,38 @@ exports.dropTable = function(cb) {
 	exports.db.query('DROP TABLE IF EXISTS tmp;', cb);
 };
 
-exports.disconnect = function(cb) {
-	exports.db.disconnect(cb);
+exports.disconnect = function(t) {
+	exports.db.disconnect(function(err,res) {
+		t.end();
+	});
 };
+
+exports.generateTestItems = function(amt) {
+	var items = [];
+	for (var i = 0; i < amt; i++)
+		items[i] = {id: i, name: 'test ' + i, created: dateHelper.utcNow()};
+	return items;
+}
+
+exports.setupTmpTable = function(t) {
+	t.test("Drops test table", function (t) {
+		exports.dropTable(function (err, res) {
+			t.end();
+		});
+	});
+	t.test("Creates test table", function (t) {
+		exports.createTable({tempTable: true}, function (err, res) {
+			t.end();
+		});
+	});
+	t.end();
+}
+
+exports.tearDown = function(t) {
+	t.test("Drops test table", function (t) {
+		exports.dropTable(function (err, res) {
+			t.end();
+		});
+	});
+	t.end();
+}
