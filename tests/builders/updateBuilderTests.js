@@ -1,11 +1,10 @@
-// TODO - need tests using $key
 "use strict";
 var test = require('tap').test;
 var _ = require('underscore');
 var dateHelper = require('../../util/dateHelper.js');
 var updateBuilder = require('../../sqlBuilders/updateBuilder.js');
 
-test('Constructs a simple update', function (t) {
+test('Constructs a simple update using $where', function (t) {
 	var item = { name: 'Test', color: 'Blue', $where: 'id = 1' };
 	var expectedSQL = 'UPDATE test SET name = ?, color = ? WHERE id = 1;';
 	var expectedValues = _.values(item).slice(0, 2);
@@ -22,7 +21,12 @@ test('Constructs a simple update', function (t) {
 	});
 });
 
-test('Constructs a simple update with rules', function (t) {
+// TODO
+test('Constructs a simple update using $key', {skip:true}, function (t) {
+	//
+});
+
+test('Constructs a simple update using $where with rules', function (t) {
 	var now = dateHelper.utcNow();
 	var item = { name: 'Test', color: 'Blue', $where: 'id = 1' };
 	var expectedValues = _.values(item).slice(0, 2).concat(now);
@@ -48,3 +52,4 @@ test('Constructs a simple update with rules', function (t) {
 		t.end();
 	});
 });
+
