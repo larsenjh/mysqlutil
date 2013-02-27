@@ -8,6 +8,7 @@ var updateHelper = require('./util/updateHelper.js');
 
 var concurrencyLimit = 10;
 var bulkInsertBatchSize = 1000;
+var hiLoBatchSize = 101;
 
 module.exports = function (conn) {
 	var transactions = require('./util/transactions.js')(conn);
@@ -300,22 +301,23 @@ module.exports = function (conn) {
 	}
 
 	function hilo() {
-		var nextID = 0;
-		var lastBatchID = -1;
+		var maxLo = hiLoBatchSize - 1;
+		var lo = maxLo + 1;
+		var hi = 0;
+
 		var deferredCallbacks = [];
 		var queryPending = false;
-		var batchSize = 10100;
 
 		return {
 			keyName: 'id',
 			type: 'hilo',
 			computedKey: true,
 			computeNextKey: function computeNextKey(mysql, cb) {
-				if (nextID < lastBatchID) {
-					log('*** Handing out id ' + nextID);
-					var currentID = nextID;
-					nextID++;
-					return cb(currentID);
+				if (lo <= maxLo) {
+					var result = hi + lo;
+					lo++;
+					log('*** Handing out id ' + result);
+					return cb(result);
 				}
 
 				deferredCallbacks.push(cb);
@@ -323,13 +325,15 @@ module.exports = function (conn) {
 				log('*** deferring while waiting for a new ID', deferredCallbacks.length, queryPending);
 				if (!queryPending) {
 					queryPending = true;
-					mysql.queryOne('call nextHiLo(?)', [batchSize], function (err, result) {
+					mysql.queryOne('call getNextHi(?)', [1], function (err, result) {
 						if (err) return cb(err);
-						result = result[0][0]; // \[0]_[0]/
-						log('*** New id range', result);
 
-						nextID = result.start;
-						lastBatchID = result.end;
+						var hival = result[0][0].NextHi; // \[0]_[0]/
+						log('*** New id range', hival);
+
+						lo = hival == 0 ? 1 : 0;
+						hi = hival * (maxLo + 1);
+
 						queryPending = false;
 
 						var runnableCallbacks = deferredCallbacks;
@@ -340,6 +344,7 @@ module.exports = function (conn) {
 						});
 					});
 				}
+
 			}
 		};
 	}
