@@ -2,45 +2,55 @@
 var _ = require('underscore');
 var async = require('async');
 var util = require('util');
-var fs = require('fs');
+var mysql = require('mysql');
+
 var insertModes = require('./util/insertModes.js');
 var updateBuilder = require('./sqlBuilders/updateBuilder.js');
 var insertBuilder = require('./sqlBuilders/insertBuilder.js');
 var bulkInsertBuilder = require('./sqlBuilders/bulkInsertBuilder.js');
 var upsertBuilder = require('./sqlBuilders/upsertBuilder.js');
 
+var _connectionParams = {};
 var concurrencyLimit = 10;
 var bulkInsertBatchSize = 1000;
 var hiLoBatchSize = 101;
 
-module.exports = function (conn) {
-	var transactions = require('./util/transactions.js')(conn);
+module.exports = function (connectionParams) {
+	var pool = mysql.createPool(connectionParams);
+	var openTransaction = false;
 	var hiloRef = hilo();
 
 	function log() {
 		if (!obj.logging)
 			return;
-		fs.writeSync(1, util.inspect(arguments) + '\n');
+		util.debug(util.inspect(arguments));
 	}
 
 	function error() {
-		fs.writeSync(2, util.inspect(arguments) + '\n');
+		util.error(util.inspect(arguments));
 	}
 
 	function query(sql, queryParams, queryCb) {
 		log(sql, queryParams);
-		conn.query(sql, queryParams, function (err, result) {
-			if (err) {
-				err.result = result;
-				err.sql = sql;
-				err.queryParams = queryParams;
-			}
 
-			if (result && !util.isArray(result) && result.columnLength === 0)
-				result = [];
+		pool.getConnection(function(err, conn) {
+			if(err) return queryCb(err);
 
-			log(err, result);
-			queryCb(err, result);
+			conn.query(sql, queryParams, function (err, result) {
+				if (err) {
+					err.result = result;
+					err.sql = sql;
+					err.queryParams = queryParams;
+				}
+
+				if (result && !util.isArray(result) && result.columnLength === 0)
+					result = [];
+
+				log(err, result);
+				conn.end();
+
+				queryCb(err, result);
+			});
 		});
 	}
 
@@ -226,10 +236,8 @@ module.exports = function (conn) {
 		}
 	}
 
-	function disconnect(cb) {
-		conn.end(function (err) {
-			if (cb) cb(err);
-		});
+	function clearPool(cb) {
+		return cb();
 	}
 
 	function hilo() {
@@ -282,18 +290,46 @@ module.exports = function (conn) {
 	}
 
 	function disableKeyChecks(cb) {
-		query("SET unique_checks=0;", null, function (err, result) {
-			query("SET foreign_key_checks=0;", cb)
-		});
+		var sql = ["SET SESSION unique_checks=0;", "SET SESSION foreign_key_checks=0;"];
+		query(sql.join('\n'), null, cb);
 	}
 
 	function enableKeyChecks(cb) {
-		query("SET unique_checks=1;", null, function (err, result) {
-			query("SET foreign_key_checks=1;", cb)
+		var sql = ["SET SESSION unique_checks=1;", "SET SESSION foreign_key_checks=1;"];
+		query(sql.join('\n'), null, cb);
+	}
+	function startTransaction(cb) {
+		query("START TRANSACTION", function (err, res) {
+			if (err) {
+				openTransaction = false;
+				return cb(err);
+			}
+			openTransaction = true;
+			cb();
 		});
 	}
 
-	var obj = _.defaults({
+	function commit(cb) {
+		if (!openTransaction)
+			return cb(new Error('No transaction found to commit'));;
+		query("COMMIT", function (err, res) {
+			if (err) return cb(err);
+			openTransaction = false;
+			cb();
+		});
+	}
+
+	function rollback(cb) {
+		if (!openTransaction)
+			return cb(new Error('No transaction found to rollback'));
+		query("ROLLBACK", function (err, res) {
+			if (err) return cb(err);
+			openTransaction = false;
+			cb();
+		});
+	}
+
+	var obj = {
 		defaultInsertMode: insertModes.hilo,
 		defaultKeyName: 'id',
 
@@ -312,16 +348,16 @@ module.exports = function (conn) {
 		update: update,
 		upsert: upsert,
 
-		startTransaction: transactions.startTransaction,
-		commit: transactions.commit,
-		rollback: transactions.rollback,
+		startTransaction: startTransaction,
+		commit: commit,
+		rollback: rollback,
 
 		disableKeyChecks: disableKeyChecks,
 		enableKeyChecks: enableKeyChecks,
 
-		disconnect: disconnect,
+		disconnect: clearPool,
 
 		logging: false
-	}, conn);
+	};
 	return obj;
 };

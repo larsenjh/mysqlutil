@@ -2,20 +2,11 @@ var _ = require('underscore');
 var mysql = require('mysql');
 var session = require('./session');
 
-exports.connect = function (settings, cb) {
-	console.log("mysqlUtil attempting connection");
-	_.defaults(settings, {host:'localhost', port:3306, user:'root', multipleStatements:true});
-
-	var connection = mysql.createConnection(settings);
-	connection.connect(function (err) {
-		if (err) {
-			console.log("mysqlUtil could not connect");
-			return cb(err);
-		}
-		console.log("mysqlUtil connected");
-		_.extend(exports.session, session(connection));
-		cb(err, exports.session);
-	});
+exports.setup = function (settings, cb) {
+	console.log("mysqlutil setup");
+	settings = _.defaults(settings, {host:'localhost', port:3306, user:'root', multipleStatements:true});
+	exports.session = session(settings);
+	cb(null, exports.session);
 };
 exports.insertModes = require('./util/insertModes.js');
 exports.utils = require('./util/dateHelper.js');
