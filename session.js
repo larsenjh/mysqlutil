@@ -31,6 +31,7 @@ module.exports = function (connectionParams) {
 	}
 
 	function query(sql, queryParams, queryCb) {
+		queryCb = queryCb || function() {};
 		log(sql, queryParams);
 
 		pool.getConnection(function(err, conn) {
@@ -236,10 +237,6 @@ module.exports = function (connectionParams) {
 		}
 	}
 
-	function clearPool(cb) {
-		return cb();
-	}
-
 	function hilo() {
 		var maxLo = hiLoBatchSize - 1;
 		var lo = maxLo + 1;
@@ -355,7 +352,9 @@ module.exports = function (connectionParams) {
 		disableKeyChecks: disableKeyChecks,
 		enableKeyChecks: enableKeyChecks,
 
-		disconnect: clearPool,
+		disconnect: function(cb) {
+			pool.prototype.end(cb);
+		}, // for tests
 
 		logging: false
 	};
