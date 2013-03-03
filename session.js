@@ -334,6 +334,11 @@ module.exports = function (connectionParams) {
 		updateRules: [],
 
 		query: function (sql, queryParams, cb) {
+			if(_.isFunction(queryParams) && !cb) {
+				cb = queryParams;
+				queryParams = null;
+			}
+			cb = cb || function() {};
 			query(sql, queryParams, cb);
 		},
 		queryOne: function (sql, queryParams, cb) {
@@ -353,7 +358,8 @@ module.exports = function (connectionParams) {
 		enableKeyChecks: enableKeyChecks,
 
 		disconnect: function(cb) {
-			pool.prototype.end(cb);
+			if(!pool) return cb();
+			pool.end(cb);
 		}, // for tests
 
 		logging: false
