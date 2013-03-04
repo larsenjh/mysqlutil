@@ -14,6 +14,7 @@ var _connectionParams = {};
 var concurrencyLimit = 10;
 var bulkInsertBatchSize = 1000;
 var hiLoBatchSize = 101;
+var minBatchCount = 100;
 
 module.exports = function (connectionParams) {
 	var pool = mysql.createPool(connectionParams);
@@ -259,7 +260,8 @@ module.exports = function (connectionParams) {
 	}
 
 	function hilo() {
-		var maxLo = hiLoBatchSize - 1;
+		var defaultMaxLo = hiLoBatchSize - 1;
+		var maxLo = defaultMaxLo;
 		var lo = maxLo + 1;
 		var hi = 0;
 
@@ -283,14 +285,15 @@ module.exports = function (connectionParams) {
 				log('*** deferring while waiting for a new ID', deferredCallbacks.length, queryPending);
 				if (!queryPending) {
 					queryPending = true;
-					mysql.queryOne('call getNextHi(?)', [10100], function (err, result) {
+					mysql.queryOne('call getNextHi(?)', [minBatchCount], function (err, result) {
 						if (err) return cb(err);
 
 						var hival = result[0][0].NextHi; // \[0]_[0]/
-						console.log('*** New id range', hival);
+						log('*** New id range', hival);
 
 						lo = hival == 0 ? 1 : 0;
-						hi = hival * (maxLo + 1);
+						hi = hival * (defaultMaxLo + 1);
+						maxLo = minBatchCount * hiLoBatchSize - 1;
 
 						queryPending = false;
 
