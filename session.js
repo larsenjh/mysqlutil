@@ -20,6 +20,24 @@ module.exports = function (connectionParams) {
 	var openTransaction = false;
 	var hiloRef = hilo();
 
+	function setup(cb, connectionsToOpen) {
+		connectionsToOpen = connectionsToOpen || 5;
+		var count = 0;
+		async.whilst(
+			function () { return count < connectionsToOpen; },
+			function (wCb) {
+				pool.getConnection(function(err, conn) {
+					if(err) return cb(err);
+					conn.connId = Math.random();
+					conn.end();
+					count++;
+					wCb();
+				});
+			},
+			cb
+		);
+	}
+
 	function log() {
 		if (!obj.logging)
 			return;
@@ -36,6 +54,9 @@ module.exports = function (connectionParams) {
 
 		pool.getConnection(function(err, conn) {
 			if(err) return queryCb(err);
+			if(!conn.connId) conn.connId = Math.random();
+
+			console.log(conn.connId, sql);
 
 			conn.query(sql, queryParams, function (err, result) {
 				if (err) {
@@ -262,11 +283,11 @@ module.exports = function (connectionParams) {
 				log('*** deferring while waiting for a new ID', deferredCallbacks.length, queryPending);
 				if (!queryPending) {
 					queryPending = true;
-					mysql.queryOne('call getNextHi(?)', [1], function (err, result) {
+					mysql.queryOne('call getNextHi(?)', [10100], function (err, result) {
 						if (err) return cb(err);
 
 						var hival = result[0][0].NextHi; // \[0]_[0]/
-						log('*** New id range', hival);
+						console.log('*** New id range', hival);
 
 						lo = hival == 0 ? 1 : 0;
 						hi = hival * (maxLo + 1);
@@ -327,6 +348,7 @@ module.exports = function (connectionParams) {
 	}
 
 	var obj = {
+		setup:setup,
 		defaultInsertMode: insertModes.hilo,
 		defaultKeyName: 'id',
 
