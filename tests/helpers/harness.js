@@ -23,6 +23,7 @@ exports.connect = function(t) {
 		database: process.env.MYSQL_DATABASE || 'mysqlutil_test'
 	}, function (err, session) {
 		exports.db = session;
+		exports.db.logging = true;
 		t.end();
 	});
 }

@@ -319,7 +319,12 @@ module.exports = function (connectionParams) {
 		var sql = ["SET SESSION unique_checks=1;", "SET SESSION foreign_key_checks=1;"];
 		query(sql.join('\n'), null, cb);
 	}
+
+	/**
+	 * TODO - fix transactions with connection pooling
+	 */
 	function startTransaction(cb) {
+		return cb(); //TODO
 		query("START TRANSACTION", function (err, res) {
 			if (err) {
 				openTransaction = false;
@@ -332,7 +337,8 @@ module.exports = function (connectionParams) {
 
 	function commit(cb) {
 		if (!openTransaction)
-			return cb(new Error('No transaction found to commit'));;
+			return cb(new Error('No transaction found to commit'));
+		return cb(); //TODO
 		query("COMMIT", function (err, res) {
 			if (err) return cb(err);
 			openTransaction = false;
@@ -341,6 +347,7 @@ module.exports = function (connectionParams) {
 	}
 
 	function rollback(cb) {
+		return cb(); //TODO
 		if (!openTransaction)
 			return cb(new Error('No transaction found to rollback'));
 		query("ROLLBACK", function (err, res) {
