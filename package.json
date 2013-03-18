@@ -23,7 +23,7 @@
 	},
 	"main": "index.js",
 	"dependencies": {
-		"mysql": "~2.0.0-alpha7",
+		"mysql": "git://github.com/felixge/node-mysql.git",
 		"underscore": "~1.4.4",
 		"async": "~0.2.5"
 	},
