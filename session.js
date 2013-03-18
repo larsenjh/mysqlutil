@@ -21,24 +21,6 @@ module.exports = function (connectionParams) {
 	var openTransaction = false;
 	var hiloRef = hilo();
 
-	function setup(cb, connectionsToOpen) {
-		connectionsToOpen = connectionsToOpen || 5;
-		var count = 0;
-		async.whilst(
-			function () { return count < connectionsToOpen; },
-			function (wCb) {
-				pool.getConnection(function(err, conn) {
-					if(err) return cb(err);
-					conn.connId = Math.random();
-					conn.end();
-					count++;
-					wCb();
-				});
-			},
-			cb
-		);
-	}
-
 	function log() {
 		if (!obj.logging)
 			return;
@@ -358,7 +340,6 @@ module.exports = function (connectionParams) {
 	}
 
 	var obj = {
-		setup:setup,
 		defaultInsertMode: insertModes.hilo,
 		defaultKeyName: 'id',
 

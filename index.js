@@ -8,9 +8,7 @@ exports.setup = function (settings, cb) {
 	settings = _.defaults(settings, {host:'localhost', port:3306, user:'root', multipleStatements:true, waitForConnections:true});
 	exports.session = session(settings);
 
-	exports.session.setup(function(err,res) {
-		cb(err, exports.session);
-	});
+	cb(null, exports.session);
 };
 exports.insertModes = require('./util/insertModes.js');
 exports.utils = require('./util/dateHelper.js');
