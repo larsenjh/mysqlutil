@@ -6,7 +6,7 @@ module.exports = function (params, cb) {
 	if (params.replace) {
 		sql.push('REPLACE');
 	} else {
-		sql.push('INSERT', (params.ignore ? 'IGNORE' : ''));
+		sql.push('INSERT', (params.ignore ? ' IGNORE' : ''));
 	}
 	sql.push(' INTO ', params.tableName, ' ');
 
