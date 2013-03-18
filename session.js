@@ -9,6 +9,7 @@ var updateBuilder = require('./sqlBuilders/updateBuilder.js');
 var insertBuilder = require('./sqlBuilders/insertBuilder.js');
 var bulkInsertBuilder = require('./sqlBuilders/bulkInsertBuilder.js');
 var upsertBuilder = require('./sqlBuilders/upsertBuilder.js');
+var uuidHelper = require('./util/uuidHelper.js');
 
 var _connectionParams = {};
 var concurrencyLimit = 10;
@@ -37,9 +38,8 @@ module.exports = function (connectionParams) {
 
 		pool.getConnection(function(err, conn) {
 			if(err) return queryCb(err);
-			if(!conn.connId) conn.connId = Math.random();
-
-			console.log(conn.connId, sql);
+			if(!conn.connId)
+				conn.connId = uuidHelper.generateUUID();
 
 			conn.query(sql, queryParams, function (err, result) {
 				if (err) {
