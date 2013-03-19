@@ -318,9 +318,9 @@ module.exports = function (connectionParams) {
 	}
 
 	function commit(cb) {
+		return cb(); //TODO
 		if (!openTransaction)
 			return cb(new Error('No transaction found to commit'));
-		return cb(); //TODO
 		query("COMMIT", function (err, res) {
 			if (err) return cb(err);
 			openTransaction = false;
