@@ -1,8 +1,9 @@
 "use strict";
 var test = require('tap').test;
 var _ = require('underscore');
-var dateHelper = require('../../util/dateHelper.js');
-var bulkInsertBuilder = require('../../sqlBuilders/bulkInsertBuilder.js');
+var dateHelper = require('../../lib/util/dateHelper.js');
+var bulkInsertBuilder = require('../../lib/sqlBuilders/bulkInsertBuilder.js');
+
 
 test('Constructs a simple bulk insert', function (t) {
 	var items = [
