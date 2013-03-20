@@ -125,4 +125,17 @@ test("upsert modifies values on key present", function (t) {
 	});
 });
 
+test("upsert inserts values if key not present", function (t) {
+	var items = harness.generateTestItems(5);
+
+	harness.db.insert('tmp', items, function (err, results) {
+		t.notOk(err, "no errors were thrown on upsert, received: " + err);
+
+		harness.getItemsInTmpTable(function(err,res) {
+			t.equal(res.length, items.length, "All rows were inserted.");
+			t.end();
+		});
+	}, {insertMode: insertModes.custom, upsert: true});
+});
+
 test("Disconnects from the database", harness.disconnect);
