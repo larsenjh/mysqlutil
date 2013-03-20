@@ -1,6 +1,6 @@
 "use strict";
 var mysqlUtil = require('../../');
-var dateHelper = require('../../lib/util/dateHelper.js');
+var dateHelper = require('../../lib/dateHelper.js');
 exports.db = null;
 
 exports.createTable = function(options, cb) {

@@ -1,8 +1,8 @@
 "use strict";
 var test = require('tap').test;
 var _ = require('underscore');
-var dateHelper = require('../../lib/util/dateHelper.js');
-var updateBuilder = require('../../lib/sqlBuilders/updateBuilder.js');
+var dateHelper = require('../lib/dateHelper.js');
+var updateBuilder = require('../lib/updateBuilder.js');
 
 test('Constructs a simple update using $where', function (t) {
 	var item = { name: 'Test', color: 'Blue', $where: 'id = 1' };

@@ -10,6 +10,6 @@ exports.setup = function (settings, cb) {
 
 	cb(null, exports.session);
 };
-exports.insertModes = require('./lib/util/insertModes.js');
-exports.utils = require('./lib/util/dateHelper.js');
+exports.insertModes = require('./lib/insertModes.js');
+exports.utils = require('./lib/dateHelper.js');
 exports.session = {};
