@@ -38,7 +38,7 @@ module.exports = function (params, cb) {
 	if (params.upsert) {
 		if (params.updateRules) {
 			_.each(params.updateRules, function (rule) {
-				rule(params.items, fields, null, null, params.tableName);
+				rule(params.items, fields, params.tableName);
 			});
 		}
 
