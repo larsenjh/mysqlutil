@@ -2,6 +2,21 @@
 var _ = require('underscore');
 
 module.exports = function (params, cb) {
+
+	if (params.insertRules) {
+		_.each(params.insertRules, function (rule) {
+			rule(params.items, params.tableName);
+		});
+	}
+
+	if (params.upsert) {
+		if (params.updateRules) {
+			_.each(params.updateRules, function (rule) {
+				rule(params.items, params.tableName);
+			});
+		}
+	}
+
 	var sql = ['INSERT'];
 
 	if (params.ignore)
@@ -13,13 +28,6 @@ module.exports = function (params, cb) {
 	var fields = _.filter(_.keys(params.items[0]), function (key) {
 		return key.charAt(0) !== '$';
 	});
-
-
-	if (params.insertRules) {
-		_.each(params.insertRules, function (rule) {
-			rule(params.items, fields, params.tableName);
-		});
-	}
 
 	sql.push('(', fields.join(', '), ') VALUES ? ');
 
@@ -36,12 +44,6 @@ module.exports = function (params, cb) {
 	});
 
 	if (params.upsert) {
-		if (params.updateRules) {
-			_.each(params.updateRules, function (rule) {
-				rule(params.items, fields, params.tableName);
-			});
-		}
-
 		// col = VALUES(col)
 		for (var i = fields.length; i--;)
 			fields[i] += ' = VALUES(' + fields[i] + ')';
