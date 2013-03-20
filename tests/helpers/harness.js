@@ -26,10 +26,14 @@ exports.connect = function(t) {
 		//exports.db.logging = true;
 		t.end();
 	});
-}
+};
 
 exports.dropTable = function(cb) {
 	exports.db.query('DROP TABLE IF EXISTS tmp;', cb);
+};
+
+exports.getItemsInTmpTable = function(cb) {
+	exports.db.query('SELECT * FROM tmp', [], cb);
 };
 
 exports.disconnect = function(t) {
