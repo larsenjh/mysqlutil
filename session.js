@@ -6,9 +6,7 @@ var mysql = require('mysql');
 
 var insertModes = require('./util/insertModes.js');
 var updateBuilder = require('./sqlBuilders/updateBuilder.js');
-var insertBuilder = require('./sqlBuilders/insertBuilder.js');
 var bulkInsertBuilder = require('./sqlBuilders/bulkInsertBuilder.js');
-var upsertBuilder = require('./sqlBuilders/upsertBuilder.js');
 var uuidHelper = require('./util/uuidHelper.js');
 
 var _connectionParams = {};
@@ -33,12 +31,12 @@ module.exports = function (connectionParams) {
 	}
 
 	function query(sql, queryParams, queryCb) {
-		queryCb = queryCb || function() {};
+		queryCb = queryCb || function () {};
 		log(sql, queryParams);
 
-		pool.getConnection(function(err, conn) {
-			if(err) return queryCb(err);
-			if(!conn.connId)
+		pool.getConnection(function (err, conn) {
+			if (err) return queryCb(err);
+			if (!conn.connId)
 				conn.connId = uuidHelper.generateUUID();
 
 			conn.query(sql, queryParams, function (err, result) {
@@ -59,9 +57,43 @@ module.exports = function (connectionParams) {
 		});
 	}
 
+	function insert(tableName, items, insertCb, options) {
+		items = _.isArray(items) ? items : [items];
+		options = _.defaults(options || {}, {
+			insertMode: obj.defaultInsertMode,
+			enforceRules: true,
+			ignore: false,
+			replace: false,
+			upsert: false
+		});
+
+		var idx = 0;
+		var insertedItems = [];
+		async.whilst(
+			function () {
+				return idx < items.length;
+			},
+			function (wCb) {
+				var chunk = items.slice(idx, idx + bulkInsertBatchSize);
+				bulkInsert(tableName, chunk, function (err, result) {
+					if (err) return wCb(err);
+					insertedItems = insertedItems.concat(result);
+					idx += bulkInsertBatchSize;
+					wCb();
+				}, options);
+			},
+			function (err) {
+				insertCb(err, insertedItems);
+			}
+		);
+	}
+
 	function bulkInsert(tableName, items, insertCb, options) {
 		async.forEach(items,
 			function (item, eachCb) {
+				if (options.insertMode !== insertModes.hilo)
+					return eachCb();
+
 				hiloRef.computeNextKey(obj, function hiloCb(nextKey) {
 					item.$insertId = item[hiloRef.keyName] = nextKey;
 					eachCb();
@@ -70,18 +102,18 @@ module.exports = function (connectionParams) {
 			function insertItems(err) {
 				if (err) return insertCb(err);
 				bulkInsertBuilder({
-					replace:options.replace,
-					ignore:options.ignore,
-					tableName:tableName,
+					replace: options.replace,
+					ignore: options.ignore,
+					tableName: tableName,
 					items: items,
 					rules: options.enforceRules ? obj.insertRules : null
-				}, function(err, insertInfo) {
-					if(err) return insertCb(err);
+				}, function (err, insertInfo) {
+					if (err) return insertCb(err);
 
 					query(insertInfo.sql, insertInfo.values, function queryCb(err, result) {
 						// $insertId -> insertId
 						items = _.map(items, function (item) {
-							if(item.$insertId) {
+							if (item.$insertId) {
 								item.insertId = item.$insertId;
 								delete item.$insertId;
 							}
@@ -93,72 +125,6 @@ module.exports = function (connectionParams) {
 
 			}
 		);
-	}
-
-	function insert(tableName, items, insertCb, options) {
-		items = _.isArray(items) ? items : [items];
-		options = _.defaults(options || {}, {
-			insertMode: obj.defaultInsertMode,
-			enforceRules: true,
-			ignore: false,
-			replace: false
-		});
-
-		if (items.length > 1 && !options.upsert) {
-			var idx = 0;
-			var insertedItems = [];
-			async.whilst(
-				function () {
-					return idx < items.length;
-				},
-				function (wCb) {
-					var chunk = items.slice(idx, idx + bulkInsertBatchSize);
-					bulkInsert(tableName, chunk, function (err, result) {
-						if (err) return wCb(err);
-						insertedItems = insertedItems.concat(result);
-						idx += bulkInsertBatchSize;
-						wCb();
-					}, options);
-				},
-				function (err) {
-					insertCb(err, insertedItems);
-				}
-			);
-			return;
-		}
-
-		var item = items[0];
-		async.series([
-			function (sCb) {
-				hiloRef.computeNextKey(obj, function hiloCb(nextKey) {
-					item.$insertId = item[hiloRef.keyName] = nextKey;
-					sCb();
-				});
-			},
-			function (sCb) {
-				insertItem(sCb, item, options);
-			}
-		], function (err, res) {
-			item.insertId = item.$insertId;
-			delete item.$insertId;
-			insertCb(err, item);
-		});
-
-		function insertItem(insertItemCb, item, options) {
-			insertBuilder({
-				item:item,
-				tableName:tableName,
-				rules: options.enforceRules ? obj.insertRules : null,
-				replace: options.replace,
-				ignore: options.ignore
-			}, function(err, insertInfo) {
-				if(err) return insertItemCb(err);
-
-				query(insertInfo.sql, insertInfo.values, function queryCb(err, result) {
-					insertItemCb(err, result);
-				});
-			});
-		}
 	}
 
 	function update(tableName, items, updateCb, options) {
@@ -176,8 +142,8 @@ module.exports = function (connectionParams) {
 					tableName: tableName,
 					rules: options.enforceRules ? obj.updateRules : null,
 					defaultKeyName: obj.defaultKeyName
-				}, function(err, updateInfo) {
-					if(err) return updateCb(err);
+				}, function (err, updateInfo) {
+					if (err) return updateCb(err);
 
 					query(updateInfo.sql, updateInfo.values, function queryCb(err, result) {
 						if (err) updateCb(err);
@@ -191,54 +157,6 @@ module.exports = function (connectionParams) {
 				updateCb(err, stack.length > 1 ? stack : stack[0]);
 			}
 		);
-	}
-
-	function upsert(tableName, items, insertCb, options) {
-		items = _.isArray(items) ? items : [items];
-		options = _.defaults(options || {}, {
-			insertMode: obj.defaultInsertMode,
-			enforceRules: true
-		});
-
-		var stack = [];
-		async.eachLimit(items, concurrencyLimit,
-			function (item, eachCb) {
-				if (options.insertMode === insertModes.hilo) {
-					hiloRef.computeNextKey(obj, function hiloCb(nextKey) {
-						item.$insertId = item[hiloRef.keyName] = nextKey;
-						upsertItem(function upsertItemCb(err, result) {
-							if (err) return insertCb(err);
-							result.insertId = item.$insertId;
-							stack.push(result);
-							eachCb();
-						}, item, options);
-					});
-				} else {
-
-					upsertItem(function upsertItemCb(err, result) {
-						if (err) return insertCb(err);
-						stack.push(result);
-						eachCb();
-					}, item, options);
-				}
-			},
-			function eachFinalCb(err) {
-				insertCb(null, stack.length > 1 ? stack : stack[0]);
-			}
-		);
-
-		function upsertItem(upsertItemCb, item, options) {
-			upsertBuilder({
-				item: item,
-				insertRules: options.enforceRules ? obj.insertRules : null,
-				updateRules: options.enforceRules ? obj.updateRules : null,
-				tableName: tableName
-			}, function(err, upsertInfo) {
-				query(upsertInfo.sql, upsertInfo.values, function queryCb(err, result) {
-					upsertItemCb(err, result);
-				});
-			});
-		}
 	}
 
 	function hilo() {
@@ -318,9 +236,9 @@ module.exports = function (connectionParams) {
 	}
 
 	function commit(cb) {
-		return cb(); //TODO
 		if (!openTransaction)
 			return cb(new Error('No transaction found to commit'));
+		return cb(); //TODO
 		query("COMMIT", function (err, res) {
 			if (err) return cb(err);
 			openTransaction = false;
@@ -347,11 +265,12 @@ module.exports = function (connectionParams) {
 		updateRules: [],
 
 		query: function (sql, queryParams, cb) {
-			if(_.isFunction(queryParams) && !cb) {
+			if (_.isFunction(queryParams) && !cb) {
 				cb = queryParams;
 				queryParams = null;
 			}
-			cb = cb || function() {};
+			cb = cb || function () {
+			};
 			query(sql, queryParams, cb);
 		},
 		queryOne: function (sql, queryParams, cb) {
@@ -361,7 +280,6 @@ module.exports = function (connectionParams) {
 		},
 		insert: insert,
 		update: update,
-		upsert: upsert,
 
 		startTransaction: startTransaction,
 		commit: commit,
@@ -370,8 +288,8 @@ module.exports = function (connectionParams) {
 		disableKeyChecks: disableKeyChecks,
 		enableKeyChecks: enableKeyChecks,
 
-		disconnect: function(cb) {
-			if(!pool) return cb();
+		disconnect: function (cb) {
+			if (!pool) return cb();
 			pool.end(cb);
 		}, // for tests
 

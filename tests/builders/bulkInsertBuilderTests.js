@@ -16,8 +16,29 @@ test('Constructs a simple bulk insert', function (t) {
 
 	bulkInsertBuilder({
 		items: items,
+		tableName: 'test'
+	}, function(err,res) {
+		t.notOk(err, "Does not return an error, received: "+err);
+		t.equal(res.sql, expectedSQL, "Returns the expected SQL");
+		t.deepEqual(res.values, expectedValues, "Return the expected values");
+		t.end();
+	});
+});
+
+test('Constructs a simple bulk upsert', function (t) {
+	var items = [
+		{ id: 1, name: 'Test 1', color: 'Blue' },
+		{ id: 2, name: 'Test 2', color: 'Red' }
+	];
+	var expectedValues = [_.chain(items.concat()).map(function(item) {
+		return _.values(item);
+	}).value()];
+	var expectedSQL = 'INSERT INTO test (id, name, color) VALUES ? ON DUPLICATE KEY UPDATE id = VALUES(id), name = VALUES(name), color = VALUES(color)';
+
+	bulkInsertBuilder({
+		items: items,
 		tableName: 'test',
-		defaultKeyName: 'id'
+		upsert:true
 	}, function(err,res) {
 		t.notOk(err, "Does not return an error, received: "+err);
 		t.equal(res.sql, expectedSQL, "Returns the expected SQL");
@@ -40,7 +61,7 @@ test('Constructs a simple bulk insert with rules', function (t) {
 	}).value()];
 	var expectedSQL = 'INSERT INTO test (id, name, color, modified) VALUES ?';
 
-	var rules = [function(_items, fields, values, expressions, tableName) {
+	var rules = [function(_items, fields, tableName) {
 		fields.push('modified');
 		_items = _.map(_items, function(item) {
 			item.modified = now;
@@ -51,8 +72,7 @@ test('Constructs a simple bulk insert with rules', function (t) {
 	bulkInsertBuilder({
 		items: items,
 		tableName: 'test',
-		defaultKeyName: 'id',
-		rules: rules
+		insertRules: rules
 	}, function(err,res) {
 		t.notOk(err, "Does not return an error, received: "+err);
 		t.equal(res.sql, expectedSQL, "Returns the expected SQL");

@@ -2,26 +2,29 @@
 var _ = require('underscore');
 
 module.exports = function (params, cb) {
-	var sql = [];
-	if (params.replace) {
-		sql.push('REPLACE');
-	} else {
-		sql.push('INSERT', (params.ignore ? ' IGNORE' : ''));
-	}
+	var sql = ['INSERT'];
+
+	if (params.ignore)
+		sql.push(' IGNORE');
+
 	sql.push(' INTO ', params.tableName, ' ');
 
-	// use the 1st item to get our fields
+	// use the 1st item to get our fields, dollar-sign prefixed $fields are ignroed
 	var fields = _.filter(_.keys(params.items[0]), function (key) {
 		return key.charAt(0) !== '$';
 	});
 
-	if (params.rules) {
-		_.each(params.rules, function (rule) {
-			rule(params.items, fields, null, null, params.tableName);
+
+	if (params.insertRules) {
+		_.each(params.insertRules, function (rule) {
+			rule(params.items, fields, params.tableName);
 		});
 	}
 
-	sql.push('(', fields.join(', '), ') VALUES ?');
+	sql.push('(', fields.join(', '), ') VALUES ? ');
+
+	if (params.upsert)
+		sql.push('ON DUPLICATE KEY UPDATE ');
 
 	var rows = []; // values needs to be a 2-d array for bulk INSERT
 	_.each(params.items, function (item) {
@@ -32,8 +35,22 @@ module.exports = function (params, cb) {
 		);
 	});
 
+	if (params.upsert) {
+		if (params.updateRules) {
+			_.each(params.updateRules, function (rule) {
+				rule(params.items, fields, null, null, params.tableName);
+			});
+		}
+
+		// col = VALUES(col)
+		for (var i = fields.length; i--;)
+			fields[i] += ' = VALUES(' + fields[i] + ')';
+
+		sql.push(fields.join(', '));
+	}
+
 	cb(null, {
-		sql: sql.join(''),
+		sql: sql.join('').trim(),
 		values: [rows]
 	});
 };
