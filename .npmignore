@@ -1,5 +1,6 @@
-tests
-.idea
+.DS_Store
+.idea/*
 *.iml
 *.log
 node_modules
+*.yml

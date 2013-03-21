@@ -7,6 +7,8 @@ var harness = require('./helpers/harness.js');
 var dateHelper = require('../lib/dateHelper.js');
 
 test("Connects to the database", harness.connect);
+test("Creates Hilo table", harness.createHiLoTable);
+test("Creates Hilo proc", harness.createHiLoProc);
 test("Setup", harness.setupTmpTable);
 
 test("an insert using hilo works", function (t) {
@@ -138,4 +140,5 @@ test("upsert inserts values if key not present", function (t) {
 	}, {insertMode: insertModes.custom});
 });
 
+test("Drops Hilo table and proc", harness.dropHiLoTableAndProc);
 test("Disconnects from the database", harness.disconnect);
