@@ -34,6 +34,7 @@ exports.createHiLoTable = function (t) {
 	) ENGINE=InnoDB; \
 	INSERT INTO `hiloid`(`NextHi`) values (1);";
 	exports.db.query(sql, function (err, res) {
+		t.notOk("No errors should be thrown when creating hiloid table, received: " + err);
 		t.end();
 	});
 };
@@ -47,6 +48,7 @@ exports.createHiLoProc = function (t) {
 	COMMIT; \
 	END";
 	exports.db.query(sql, function (err, res) {
+		t.notOk("No errors should be thrown when creating getNextHi proc, received: " + err);
 		t.end();
 	});
 };
@@ -55,6 +57,7 @@ exports.dropHiLoTableAndProc = function (t) {
 	var sql = "DROP TABLE hiloid; \
 	DROP PROCEDURE getNextHi;";
 	exports.db.query(sql, function (err, res) {
+		t.notOk("No errors should be thrown when dropping getNextHi proc and hiloid table, received: " + err);
 		t.end();
 	});
 };
