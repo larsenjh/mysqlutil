@@ -58,7 +58,7 @@ exports.dropHiLoTableAndProc = function (t) {
 	var sql = "DROP TABLE hiloid; \
 	DROP PROCEDURE getNextHi;";
 	exports.db.query(sql, function (err, res) {
-		t.notOk("No errors should be thrown when dropping getNextHi proc and hiloid table, received: " + err);
+		t.notOk(err, "No errors should be thrown when dropping getNextHi proc and hiloid table, received: " + err);
 		t.end();
 	});
 };
@@ -73,6 +73,7 @@ exports.getItemsInTmpTable = function (cb) {
 
 exports.disconnect = function (t) {
 	exports.db.disconnect(function (err, res) {
+		t.notOk(err, "No errors should be thrown when disconecting from the db, received: " + err);
 		t.end();
 	});
 };
@@ -87,11 +88,13 @@ exports.generateTestItems = function (amt) {
 exports.setupTmpTable = function (t) {
 	t.test("Drops test table", function (t) {
 		exports.dropTable(function (err, res) {
+			t.notOk(err, "No errors should be thrown when dropping test table, received: " + err);
 			t.end();
 		});
 	});
 	t.test("Creates test table", function (t) {
 		createTmpTable({tempTable: true}, function (err, res) {
+			t.notOk(err, "No errors should be thrown when creating test table, received: " + err);
 			t.end();
 		});
 	});
@@ -101,6 +104,7 @@ exports.setupTmpTable = function (t) {
 exports.tearDown = function (t) {
 	t.test("Drops test table", function (t) {
 		exports.dropTable(function (err, res) {
+			t.notOk(err, "No errors should be thrown when dropping test table, received: " + err);
 			t.end();
 		});
 	});
