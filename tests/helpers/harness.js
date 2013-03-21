@@ -24,7 +24,6 @@ exports.connect = function (t) {
 		t.notOk(err, "No errors should be thrown when connecting to the database, received: " + err);
 		t.ok(session, "A db session was received");
 		exports.db = session;
-		exports.db.logging = true;
 		t.end();
 	});
 };
