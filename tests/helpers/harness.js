@@ -21,7 +21,7 @@ exports.connect = function (t) {
 		password: process.env.MYSQL_PASSWORD || null,
 		database: process.env.MYSQL_DATABASE || 'mysqlutil_test'
 	}, function (err, session) {
-		t.notOk("No errors should be thrown when connecting to the database, received: " + err);
+		t.notOk(err, "No errors should be thrown when connecting to the database, received: " + err);
 		exports.db = session;
 		t.end();
 		//exports.db.logging = true;
@@ -35,7 +35,7 @@ exports.createHiLoTable = function (t) {
 	) ENGINE=InnoDB; \
 	INSERT INTO `hiloid`(`NextHi`) values (1);";
 	exports.db.query(sql, function (err, res) {
-		t.notOk("No errors should be thrown when creating hiloid table, received: " + err);
+		t.notOk(err, "No errors should be thrown when creating hiloid table, received: " + err);
 		t.end();
 	});
 };
@@ -49,7 +49,7 @@ exports.createHiLoProc = function (t) {
 	COMMIT; \
 	END";
 	exports.db.query(sql, function (err, res) {
-		t.notOk("No errors should be thrown when creating getNextHi proc, received: " + err);
+		t.notOk(err, "No errors should be thrown when creating getNextHi proc, received: " + err);
 		t.end();
 	});
 };
