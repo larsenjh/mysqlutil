@@ -30,13 +30,13 @@ exports.connect = function (t) {
 };
 
 exports.createHiLoTable = function (t) {
-	var sql = "CREATE TABLE hiloid ( \
+	var sql = "CREATE TABLE HiLoID ( \
 	NextHi bigint(20) NOT NULL, \
 	PRIMARY KEY (`NextHi`) \
 	) ENGINE=InnoDB; \
-	INSERT INTO `hiloid`(`NextHi`) values (1);";
+	INSERT INTO HiLoID(NextHi) values (1);";
 	exports.db.query(sql, function (err, res) {
-		t.notOk(err, "No errors should be thrown when creating hiloid table, received: " + err);
+		t.notOk(err, "No errors should be thrown when creating HiLoID table, received: " + err);
 		t.end();
 	});
 };
@@ -56,10 +56,10 @@ exports.createHiLoProc = function (t) {
 };
 
 exports.dropHiLoTableAndProc = function (t) {
-	var sql = "DROP TABLE IF EXISTS hiloid; \
+	var sql = "DROP TABLE IF EXISTS HiLoID; \
 	DROP PROCEDURE IF EXISTS getNextHi;";
 	exports.db.query(sql, function (err, res) {
-		t.notOk(err, "No errors should be thrown when dropping getNextHi proc and hiloid table, received: " + err);
+		t.notOk(err, "No errors should be thrown when dropping getNextHi proc and HiLoID table, received: " + err);
 		t.end();
 	});
 };
