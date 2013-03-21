@@ -56,16 +56,12 @@ exports.createHiLoProc = function (t) {
 };
 
 exports.dropHiLoTableAndProc = function (t) {
-	var sql = "DROP TABLE hiloid; \
-	DROP PROCEDURE getNextHi;";
+	var sql = "DROP TABLE IF EXISTS hiloid; \
+	DROP PROCEDURE IF EXISTS getNextHi;";
 	exports.db.query(sql, function (err, res) {
 		t.notOk(err, "No errors should be thrown when dropping getNextHi proc and hiloid table, received: " + err);
 		t.end();
 	});
-};
-
-exports.dropTable = function (cb) {
-	exports.db.query('DROP TABLE IF EXISTS tmp;', cb);
 };
 
 exports.getItemsInTmpTable = function (cb) {
@@ -87,24 +83,22 @@ exports.generateTestItems = function (amt) {
 }
 
 exports.setupTmpTable = function (t) {
-	t.test("Drops test table", function (t) {
-		exports.dropTable(function (err, res) {
-			t.notOk(err, "No errors should be thrown when dropping test table, received: " + err);
-			t.end();
-		});
+	createTmpTable({tempTable: true}, function (err, res) {
+		t.notOk(err, "No errors should be thrown when creating test table, received: " + err);
+		t.end();
 	});
-	t.test("Creates test table", function (t) {
-		createTmpTable({tempTable: true}, function (err, res) {
-			t.notOk(err, "No errors should be thrown when creating test table, received: " + err);
-			t.end();
-		});
-	});
-	t.end();
-}
+};
 
-exports.tearDown = function (t) {
+exports.truncateTmpTable = function(t) {
+	exports.db.query('TRUNCATE TABLE tmp;', function (err, res) {
+		t.notOk(err, "No errors should be thrown when truncating test table, received: " + err);
+		t.end();
+	});
+};
+
+exports.dropTmpTable = function (t) {
 	t.test("Drops test table", function (t) {
-		exports.dropTable(function (err, res) {
+		exports.db.query('DROP TABLE IF EXISTS tmp;', function (err, res) {
 			t.notOk(err, "No errors should be thrown when dropping test table, received: " + err);
 			t.end();
 		});

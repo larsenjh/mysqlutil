@@ -7,15 +7,17 @@ var harness = require('./helpers/harness.js');
 var dateHelper = require('../lib/dateHelper.js');
 
 test("Connects to the database", harness.connect);
+test("Drops Hilo table and proc", harness.dropHiLoTableAndProc);
+test("Creates Hilo table", harness.createHiLoTable);
+test("Creates Hilo proc", harness.createHiLoProc);
+test("Setup test table", harness.setupTmpTable);
 
 test('a simple update works', function (t) {
 	var item = harness.generateTestItems(1)[0];
 
-	t.test('Setup', harness.setupTmpTable);
-
 	t.test('Creates test item', function(t) {
 		harness.db.insert('tmp', item, function (err, result) {
-			t.notOk(err, "no errors were thrown on insert");
+			t.notOk(err, "no errors were thrown on insert, received: " + err);
 			t.end();
 		}, {insertMode:insertModes.custom});
 	});
@@ -28,12 +30,14 @@ test('a simple update works', function (t) {
 		delete item.insertId;
 
 		harness.db.update('tmp', item, function (err, res) {
-			t.notOk(err, "no errors were thrown on update");
+			t.notOk(err, "no errors were thrown on update, received: " + err);
 			t.end();
 		}, {enforceRules: false});
 	});
 
-	t.test('Teardown', harness.tearDown);
+	t.end();
 });
 
+test("Drops test table", harness.dropTmpTable);
+test("Drops Hilo table and proc", harness.dropHiLoTableAndProc);
 test("Disconnects from the database", harness.disconnect);

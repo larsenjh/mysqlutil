@@ -7,9 +7,10 @@ var harness = require('./helpers/harness.js');
 var dateHelper = require('../lib/dateHelper.js');
 
 test("Connects to the database", harness.connect);
+test("Drops Hilo table and proc", harness.dropHiLoTableAndProc);
 test("Creates Hilo table", harness.createHiLoTable);
 test("Creates Hilo proc", harness.createHiLoProc);
-test("Setup", harness.setupTmpTable);
+test("Setup test table", harness.setupTmpTable);
 
 test("an insert using hilo works", function (t) {
 	var items = harness.generateTestItems(5);
@@ -21,8 +22,7 @@ test("an insert using hilo works", function (t) {
 	});
 });
 
-test("Teardown", harness.tearDown);
-test("Setup", harness.setupTmpTable);
+test("Truncates test table", harness.truncateTmpTable);
 
 /*
 test("inserts are not written within transactions that have been rolled back", function (t) {
@@ -56,9 +56,6 @@ test("inserts are not written within transactions that have been rolled back", f
 });
 */
 
-test("Teardown", harness.tearDown);
-test("Setup", harness.setupTmpTable);
-
 test("an insert returns an insertId per inserted item", function (t) {
 	var items = harness.generateTestItems(5);
 
@@ -75,8 +72,7 @@ test("an insert returns an insertId per inserted item", function (t) {
 	});
 });
 
-test("Teardown", harness.tearDown);
-test("Setup", harness.setupTmpTable);
+test("Truncates test table", harness.truncateTmpTable);
 
 test("insert-ignore doesn't error on duplicate row inserts", function (t) {
 	var items = harness.generateTestItems(5);
@@ -97,8 +93,7 @@ test("insert-ignore doesn't error on duplicate row inserts", function (t) {
 	});
 });
 
-test("Teardown", harness.tearDown);
-test("Setup", harness.setupTmpTable);
+test("Truncates test table", harness.truncateTmpTable);
 
 test("upsert modifies values on key present", function (t) {
 	var items = harness.generateTestItems(5);
@@ -129,6 +124,8 @@ test("upsert modifies values on key present", function (t) {
 	});
 });
 
+test("Truncates test table", harness.truncateTmpTable);
+
 test("upsert inserts values if key not present", function (t) {
 	var items = harness.generateTestItems(5);
 
@@ -142,5 +139,6 @@ test("upsert inserts values if key not present", function (t) {
 	}, {insertMode: insertModes.custom});
 });
 
+test("Drops test table", harness.dropTmpTable);
 test("Drops Hilo table and proc", harness.dropHiLoTableAndProc);
 test("Disconnects from the database", harness.disconnect);
