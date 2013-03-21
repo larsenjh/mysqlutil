@@ -22,6 +22,7 @@ exports.connect = function (t) {
 		database: process.env.MYSQL_DATABASE || 'mysqlutil_test'
 	}, function (err, session) {
 		t.notOk(err, "No errors should be thrown when connecting to the database, received: " + err);
+		t.ok(session, "A db session was received");
 		exports.db = session;
 		t.end();
 		//exports.db.logging = true;
