@@ -24,7 +24,8 @@ test("an insert using hilo works", function (t) {
 test("Teardown", harness.tearDown);
 test("Setup", harness.setupTmpTable);
 
-test("inserts are not written within transactions that have been rolled back", {skip: true}, function (t) {
+/*
+test("inserts are not written within transactions that have been rolled back", function (t) {
 	var newItem = {created: new Date(), name: "This is a test"};
 
 	async.series([
@@ -53,6 +54,7 @@ test("inserts are not written within transactions that have been rolled back", {
 		t.end();
 	});
 });
+*/
 
 test("Teardown", harness.tearDown);
 test("Setup", harness.setupTmpTable);
