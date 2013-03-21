@@ -19,7 +19,7 @@
 		"type": "MIT"
 	},
 	"scripts": {
-		"test": "tap tests/*.js tap tests/sqlBuilders/*.js"
+		"test": "tap tests/*.js"
 	},
 	"main": "index.js",
 	"dependencies": {
