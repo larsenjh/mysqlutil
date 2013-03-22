@@ -2,7 +2,7 @@
 var test = require('tap').test;
 var _ = require('underscore');
 var dateHelper = require('../lib/dateHelper.js');
-var bulkInsertBuilder = require('../lib/bulkInsertBuilder.js');
+var bulkInsertBuilder = require('../lib/insertBuilder.js');
 
 
 test('Constructs a simple bulk insert', function (t) {

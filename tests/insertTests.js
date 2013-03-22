@@ -8,9 +8,8 @@ var dateHelper = require('../lib/dateHelper.js');
 
 test("Connects to the database", harness.connect);
 test("Drops Hilo table and proc", harness.dropHiLoTableAndProc);
-test("Creates Hilo table", harness.createHiLoTable);
-test("Creates Hilo proc", harness.createHiLoProc);
-test("Setup test table", harness.setupTmpTable);
+test("Creates Hilo table and proc", harness.createHiLoTableAndProc);
+test("Setup test table", harness.createTestTempTable);
 
 test("an insert using hilo works", function (t) {
 	var items = harness.generateTestItems(5);
@@ -22,7 +21,7 @@ test("an insert using hilo works", function (t) {
 	});
 });
 
-test("Truncates test table", harness.truncateTmpTable);
+test("Truncates test table", harness.truncateTestTable);
 
 /*
 test("inserts are not written within transactions that have been rolled back", function (t) {
@@ -72,7 +71,7 @@ test("an insert returns an insertId per inserted item", function (t) {
 	});
 });
 
-test("Truncates test table", harness.truncateTmpTable);
+test("Truncates test table", harness.truncateTestTable);
 
 test("insert-ignore doesn't error on duplicate row inserts", function (t) {
 	var items = harness.generateTestItems(5);
@@ -86,14 +85,14 @@ test("insert-ignore doesn't error on duplicate row inserts", function (t) {
 		}
 	], function(err) {
 		t.notOk(err, "no errors were thrown on insert-ignore, received: " + err);
-		harness.getItemsInTmpTable(function(err,res) {
+		harness.getItemsInTestTable(function(err,res) {
 			t.equal(res.length, items.length, "no additional rows were inserted.");
 			t.end();
 		});
 	});
 });
 
-test("Truncates test table", harness.truncateTmpTable);
+test("Truncates test table", harness.truncateTestTable);
 
 test("upsert modifies values on key present", function (t) {
 	var items = harness.generateTestItems(5);
@@ -112,7 +111,7 @@ test("upsert modifies values on key present", function (t) {
 		}
 	], function(err) {
 		t.notOk(err, "no errors were thrown on insert-ignore, received: " + err);
-		harness.getItemsInTmpTable(function(err,res) {
+		harness.getItemsInTestTable(function(err,res) {
 			t.equal(res.length, items.length, "no additional rows were inserted.");
 
 			var unchangedRecord = _.find(res, function(rec){
@@ -124,7 +123,7 @@ test("upsert modifies values on key present", function (t) {
 	});
 });
 
-test("Truncates test table", harness.truncateTmpTable);
+test("Truncates test table", harness.truncateTestTable);
 
 test("upsert inserts values if key not present", function (t) {
 	var items = harness.generateTestItems(5);
@@ -132,13 +131,13 @@ test("upsert inserts values if key not present", function (t) {
 	harness.db.upsert('tmp', items, function (err, results) {
 		t.notOk(err, "no errors were thrown on upsert, received: " + err);
 
-		harness.getItemsInTmpTable(function(err,res) {
+		harness.getItemsInTestTable(function(err,res) {
 			t.equal(res.length, items.length, "All rows were inserted.");
 			t.end();
 		});
 	}, {insertMode: insertModes.custom});
 });
 
-test("Drops test table", harness.dropTmpTable);
+test("Drops test table", harness.dropTestTable);
 test("Drops Hilo table and proc", harness.dropHiLoTableAndProc);
 test("Disconnects from the database", harness.disconnect);

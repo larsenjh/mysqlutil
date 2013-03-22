@@ -4,7 +4,7 @@ var mysqlUtil = require('../../');
 var dateHelper = require('../../lib/dateHelper.js');
 exports.db = null;
 
-function createTmpTable(options, cb) {
+function createTestTable(options, cb) {
 	var sql = "CREATE" + (options.tmpTable ? ' TEMPORARY ' : ' ') + "TABLE IF NOT EXISTS tmp ( \
 	id BIGINT(20) NOT NULL, \
 	created datetime NOT NULL, \
@@ -12,7 +12,7 @@ function createTmpTable(options, cb) {
 	PRIMARY KEY (id) \
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 	exports.db.query(sql, cb);
-}
+};
 
 exports.connect = function (t) {
 	mysqlUtil.setup({
@@ -28,20 +28,14 @@ exports.connect = function (t) {
 	});
 };
 
-exports.createHiLoTable = function (t) {
+exports.createHiLoTableAndProc = function (t) {
 	var sql = "CREATE TABLE HiLoID ( \
 	NextHi bigint(20) NOT NULL, \
 	PRIMARY KEY (`NextHi`) \
 	) ENGINE=InnoDB; \
-	INSERT INTO HiLoID(NextHi) values (1);";
-	exports.db.query(sql, function (err, res) {
-		t.notOk(err, "No errors should be thrown when creating HiLoID table, received: " + err);
-		t.end();
-	});
-};
-
-exports.createHiLoProc = function (t) {
-	var sql = "CREATE PROCEDURE getNextHi(IN numberOfBatches INT) \
+	INSERT INTO HiLoID(NextHi) values (1); \
+	\
+	CREATE PROCEDURE getNextHi(IN numberOfBatches INT) \
 	BEGIN \
 	START TRANSACTION; \
 	SELECT NextHi FROM HiLoID FOR UPDATE; \
@@ -49,7 +43,7 @@ exports.createHiLoProc = function (t) {
 	COMMIT; \
 	END";
 	exports.db.query(sql, function (err, res) {
-		t.notOk(err, "No errors should be thrown when creating getNextHi proc, received: " + err);
+		t.notOk(err, "No errors were thrown when creating getNextHi proc, received: " + err);
 		t.end();
 	});
 };
@@ -58,18 +52,18 @@ exports.dropHiLoTableAndProc = function (t) {
 	var sql = "DROP TABLE IF EXISTS HiLoID; \
 	DROP PROCEDURE IF EXISTS getNextHi;";
 	exports.db.query(sql, function (err, res) {
-		t.notOk(err, "No errors should be thrown when dropping getNextHi proc and HiLoID table, received: " + err);
+		t.notOk(err, "No errors were thrown when dropping getNextHi proc and HiLoID table, received: " + err);
 		t.end();
 	});
 };
 
-exports.getItemsInTmpTable = function (cb) {
+exports.getItemsInTestTable = function (cb) {
 	exports.db.query('SELECT * FROM tmp', [], cb);
 };
 
 exports.disconnect = function (t) {
 	exports.db.disconnect(function (err, res) {
-		t.notOk(err, "No errors should be thrown when disconecting from the db, received: " + err);
+		t.notOk(err, "No errors were thrown when disconecting from the db, received: " + err);
 		t.end();
 	});
 };
@@ -79,28 +73,28 @@ exports.generateTestItems = function (amt) {
 	for (var i = 0; i < amt; i++)
 		items[i] = {id: i, name: 'test ' + i, created: dateHelper.utcNow()};
 	return items;
-}
+};
 
-exports.setupTmpTable = function (t) {
-	createTmpTable({tempTable: true}, function (err, res) {
-		t.notOk(err, "No errors should be thrown when creating test table, received: " + err);
+exports.createTestTempTable = function (t) {
+	createTestTable({tempTable: true}, function (err, res) {
+		t.notOk(err, "No errors were thrown when creating test table, received: " + err);
 		t.end();
 	});
 };
 
-exports.truncateTmpTable = function(t) {
+exports.truncateTestTable = function(t) {
 	exports.db.query('TRUNCATE TABLE tmp;', function (err, res) {
-		t.notOk(err, "No errors should be thrown when truncating test table, received: " + err);
+		t.notOk(err, "No errors were thrown when truncating test table, received: " + err);
 		t.end();
 	});
 };
 
-exports.dropTmpTable = function (t) {
+exports.dropTestTable = function (t) {
 	t.test("Drops test table", function (t) {
 		exports.db.query('DROP TABLE IF EXISTS tmp;', function (err, res) {
-			t.notOk(err, "No errors should be thrown when dropping test table, received: " + err);
+			t.notOk(err, "No errors were thrown when dropping test table, received: " + err);
 			t.end();
 		});
 	});
 	t.end();
-}
+};

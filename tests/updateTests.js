@@ -8,9 +8,8 @@ var dateHelper = require('../lib/dateHelper.js');
 
 test("Connects to the database", harness.connect);
 test("Drops Hilo table and proc", harness.dropHiLoTableAndProc);
-test("Creates Hilo table", harness.createHiLoTable);
-test("Creates Hilo proc", harness.createHiLoProc);
-test("Setup test table", harness.setupTmpTable);
+test("Creates Hilo table and proc", harness.createHiLoTableAndProc);
+test("Setup test table", harness.createTestTempTable);
 
 test('a simple update works', function (t) {
 	var item = harness.generateTestItems(1)[0];
@@ -38,6 +37,6 @@ test('a simple update works', function (t) {
 	t.end();
 });
 
-test("Drops test table", harness.dropTmpTable);
+test("Drops test table", harness.dropTestTable);
 test("Drops Hilo table and proc", harness.dropHiLoTableAndProc);
 test("Disconnects from the database", harness.disconnect);
