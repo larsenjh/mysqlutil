@@ -15,8 +15,8 @@ function createTestTable(options, cb) {
 };
 
 exports.connect = function (t) {
-	mysqlUtil.setup({
-		host: process.env.MYSQL_HOST || '127.0.0.1',
+	mysqlUtil({
+		host: process.env.MYSQL_HOST || 'vm',//'127.0.0.1',
 		user: process.env.MYSQL_USER || 'root',
 		password: process.env.MYSQL_PASSWORD || null,
 		database: process.env.MYSQL_DATABASE || 'mysqlutil_test'

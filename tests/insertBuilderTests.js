@@ -1,6 +1,6 @@
 "use strict";
 var test = require('tap').test;
-var _ = require('underscore');
+var _ = require('lodash');
 var dateHelper = require('../lib/dateHelper.js');
 var bulkInsertBuilder = require('../lib/insertBuilder.js');
 
@@ -10,7 +10,7 @@ test('Constructs a simple bulk insert', function (t) {
 		{ id: 1, name: 'Test 1', color: 'Blue' },
 		{ id: 2, name: 'Test 2', color: 'Red' }
 	];
-	var expectedValues = [_.chain(items.concat()).map(function(item) {
+	var expectedValues = [_(items.concat()).map(function(item) {
 		return _.values(item);
 	}).value()];
 	var expectedSQL = 'INSERT INTO test (id, name, color) VALUES ?';
@@ -31,7 +31,7 @@ test('Constructs a simple bulk upsert', function (t) {
 		{ id: 1, name: 'Test 1', color: 'Blue' },
 		{ id: 2, name: 'Test 2', color: 'Red' }
 	];
-	var expectedValues = [_.chain(items.concat()).map(function(item) {
+	var expectedValues = [_(items.concat()).map(function(item) {
 		return _.values(item);
 	}).value()];
 	var expectedSQL = 'INSERT INTO test (id, name, color) VALUES ? ON DUPLICATE KEY UPDATE id = VALUES(id), '+
@@ -54,7 +54,7 @@ test('Constructs a simple bulk insert ignore', function (t) {
 		{ id: 1, name: 'Test 1', color: 'Blue' },
 		{ id: 2, name: 'Test 2', color: 'Red' }
 	];
-	var expectedValues = [_.chain(items.concat()).map(function(item) {
+	var expectedValues = [_(items.concat()).map(function(item) {
 		return _.values(item);
 	}).value()];
 	var expectedSQL = 'INSERT IGNORE INTO test (id, name, color) VALUES ?';
@@ -78,7 +78,7 @@ test('Constructs a simple bulk insert with rules', function (t) {
 		{ id: 2, name: 'Test 2', color: 'Red' }
 	];
 
-	var expectedValues = [_.chain(items.concat()).map(function(item) {
+	var expectedValues = [_(items.concat()).map(function(item) {
 		var values = _.values(item);
 		values.push(now);
 		return values;
@@ -111,7 +111,7 @@ test('Constructs a simple bulk upsert with rules', function (t) {
 		{ id: 2, name: 'Test 2', color: 'Red' }
 	];
 
-	var expectedValues = [_.chain(items.concat()).map(function(item) {
+	var expectedValues = [_(items.concat()).map(function(item) {
 		var values = _.values(item);
 		values.push(now);
 		values.push("fun")

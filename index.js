@@ -1,15 +1,14 @@
-var _ = require('underscore');
-var mysql = require('mysql');
-var session = require('./lib/session');
+var _ = require('lodash');
 
-exports.setup = function (settings, cb) {
-	console.log("mysqlutil setup");
+module.exports = MysqlUtil;
 
-	settings = _.defaults(settings, {host:'localhost', port:3306, user:'root', multipleStatements:true, waitForConnections:true});
-	exports.session = session(settings);
+function MysqlUtil(settings, cb) {
+	cb = cb || function(){};
 
-	cb(null, exports.session);
-};
-exports.insertModes = require('./lib/insertModes.js');
-exports.utils = require('./lib/dateHelper.js');
-exports.session = {};
+	this.config = _.defaults(settings, {host:'localhost', port:3306, user:'root', multipleStatements:true, waitForConnections:true});
+	this.session = require('./lib/session.js')(this.config);
+	this.insertModes = require('./lib/insertModes.js');
+	this.utils = require('./lib/dateHelper.js');
+
+	cb(null, this.session);
+}
