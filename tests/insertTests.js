@@ -23,38 +23,6 @@ test("an insert using hilo works", function (t) {
 
 test("Truncates test table", harness.truncateTestTable);
 
-/*
-test("inserts are not written within transactions that have been rolled back", function (t) {
-	var newItem = {created: new Date(), name: "This is a test"};
-
-	async.series([
-		function (seriesCb) {
-			harness.db.startTransaction(seriesCb);
-		},
-		function test(seriesCb) {
-			harness.db.insert('tmp', newItem, seriesCb);
-		},
-		function checkInsert(seriesCb) {
-			harness.db.query('SELECT * FROM tmp', [], function (err, result1) {
-				t.equal(result1.length, 1, "a row was inserted.");
-				seriesCb();
-			});
-		},
-		function (seriesCb) {
-			harness.db.rollback(seriesCb);
-		},
-		function checkInsert(seriesCb) {
-			harness.db.query('SELECT * FROM tmp', [], function (err, result2) {
-				t.equal(result2.length, 0, "no rows were inserted after the transaction was rolled back.");
-				seriesCb();
-			});
-		}
-	], function (err, res) {
-		t.end();
-	});
-});
-*/
-
 test("an insert returns an insertId per inserted item", function (t) {
 	var items = harness.generateTestItems(5);
 
@@ -137,6 +105,40 @@ test("upsert inserts values if key not present", function (t) {
 		});
 	}, {insertMode: insertModes.custom});
 });
+
+/*
+test("Truncates test table", harness.truncateTestTable);
+
+test("inserts are not written within transactions that have been rolled back", function (t) {
+	var newItem = {created: new Date(), name: "This is a test"};
+
+	async.series([
+		function (seriesCb) {
+			harness.db.startTransaction(seriesCb);
+		},
+		function test(seriesCb) {
+			harness.db.insert('tmp', newItem, seriesCb);
+		},
+		function checkInsert(seriesCb) {
+			harness.db.query('SELECT * FROM tmp', [], function (err, result1) {
+				t.equal(result1.length, 1, "a row was inserted.");
+				seriesCb();
+			});
+		},
+		function (seriesCb) {
+			harness.db.rollback(seriesCb);
+		},
+		function checkInsert(seriesCb) {
+			harness.db.query('SELECT * FROM tmp', [], function (err, result2) {
+				t.equal(result2.length, 0, "no rows were inserted after the transaction was rolled back.");
+				seriesCb();
+			});
+		}
+	], function (err, res) {
+		t.end();
+	});
+});
+*/
 
 test("Drops test table", harness.dropTestTable);
 test("Drops Hilo table and proc", harness.dropHiLoTableAndProc);
