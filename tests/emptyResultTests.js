@@ -20,6 +20,13 @@ test("query() with empty result returns null", function (t) {
 	});
 });
 
+test("query() with invalid sql returns null result", function (t) {
+	harness.db.query('SELECT 1 FROM~ tmp', function (err, result) {
+		t.equal(result, null, "Result should be null.")
+		t.end();
+	});
+});
+
 test("queryOne() supplied SQL with logically impossible WHERE clause returns null", function (t) {
 	harness.db.queryOne('SELECT 1 FROM tmp WHERE 1 != 1', function (err, result) {
 		t.equal(result, null, "Result should be null.")
@@ -29,6 +36,13 @@ test("queryOne() supplied SQL with logically impossible WHERE clause returns nul
 
 test("queryOne() with empty result returns null", function (t) {
 	harness.db.queryOne('SELECT * FROM tmp', function (err, result) {
+		t.equal(result, null, "Result should be null.")
+		t.end();
+	});
+});
+
+test("queryOne() with invalid sql returns null result", function (t) {
+	harness.db.queryOne('SELECT 1 FROM~ tmp', function (err, result) {
 		t.equal(result, null, "Result should be null.")
 		t.end();
 	});
