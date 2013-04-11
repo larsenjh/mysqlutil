@@ -13,15 +13,16 @@ function MysqlUtil(settings, cb) {
 		user:'root',
 		multipleStatements:true,
 		waitForConnections:true,
-		connectionLimit: 20,
+		connectionLimit: 2,
 		preFillPool: true
 	});
+
 	this.session = require('./lib/session.js')(this.config);
 
 	if(!this.config.preFillPool)
 		return cb(null, this.session);
 
-	var amtToPrefill = settings.amtToPrefill || 5;
+	var amtToPrefill = settings.amtToPrefill || settings.connectionLimit;
 	this.session.preFillPool(amtToPrefill, function() {
 		cb(null, this.session);
 	});
