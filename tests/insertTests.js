@@ -106,7 +106,6 @@ test("upsert inserts values if key not present", function (t) {
 	}, {insertMode: insertModes.custom});
 });
 
-/*
 test("Truncates test table", harness.truncateTestTable);
 
 test("inserts are not written within transactions that have been rolled back", function (t) {
@@ -138,7 +137,6 @@ test("inserts are not written within transactions that have been rolled back", f
 		t.end();
 	});
 });
-*/
 
 test("Drops test table", harness.dropTestTable);
 test("Drops Hilo table and proc", harness.dropHiLoTableAndProc);

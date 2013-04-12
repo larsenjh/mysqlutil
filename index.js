@@ -11,19 +11,9 @@ function MysqlUtil(settings, cb) {
 		host:'localhost',
 		port:3306,
 		user:'root',
-		multipleStatements:true,
-		waitForConnections:true,
-		connectionLimit: 2,
-		preFillPool: true
+		multipleStatements:true
 	});
 
 	this.session = require('./lib/session.js')(this.config);
-
-	if(!this.config.preFillPool)
-		return cb(null, this.session);
-
-	var amtToPrefill = settings.amtToPrefill || settings.connectionLimit;
-	this.session.preFillPool(amtToPrefill, function() {
-		cb(null, this.session);
-	});
+	return cb(null, this.session);
 }
