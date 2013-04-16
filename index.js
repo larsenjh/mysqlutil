@@ -11,7 +11,8 @@ function MysqlUtil(settings, cb) {
 		host:'localhost',
 		port:3306,
 		user:'root',
-		multipleStatements:true
+		multipleStatements:true,
+		timezone:'Z'
 	});
 
 	this.session = require('./lib/session.js')(this.config);
