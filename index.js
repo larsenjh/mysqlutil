@@ -26,7 +26,7 @@ function MysqlUtil(settings, cb) {
 		throw err;
 	});
 
-	connection.on('disconnect', function(err) {
+	connection.on('end', function(err) {
 		clearInterval(intervalId);
 	});
 
