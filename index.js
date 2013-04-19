@@ -39,6 +39,7 @@ function MysqlUtil(settings, cb) {
 
 	function ping() {
 		connection.ping(function(err, res) {
+			console.log(new Date().toString(), ' ping.');
 			if(err) throw err;
 		});
 	}
