@@ -16,6 +16,7 @@ function MysqlUtil(settings, cb) {
 		connectionLimit: 10,
 		preFillPool: true,
 		timezone:'Z',
+		amtToPrefill: 5,
 		connectionPingIntervalSeconds: 15 * 60 // 15 minutes
 	});
 
