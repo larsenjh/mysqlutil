@@ -17,7 +17,15 @@ function MysqlUtil(settings, cb) {
 		timezone:'Z',
 		amtToPrefill: 10,
 		connectionPingIntervalSeconds: 15 * 60, // 15 minutes
-		debugging:false
+		debugging:{
+			hilo:false,
+			ping:true,
+			connectionEnd:false,
+			connectionError:true,
+			poolPerf:true,
+			queryPerf:true,
+			queryResult:false
+		}
 	});
 
 	this.session = require('./lib/session.js')(settings);
