@@ -24,6 +24,7 @@ function MysqlUtil(settings, cb) {
 			connectionError:true,
 			poolPerf:true,
 			queryPerf:true,
+			queryPerfSlowQueryThresholdMs:1000,
 			queryResult:false
 		}
 	});
