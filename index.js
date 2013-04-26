@@ -19,10 +19,10 @@ function MysqlUtil(settings, cb) {
 		connectionPingIntervalSeconds: 15 * 60, // 15 minutes
 		debugging:{
 			hilo:false,
-			ping:true,
+			ping:false,
 			connectionEnd:false,
 			connectionError:true,
-			poolPerf:true,
+			poolPerf:false,
 			queryPerf:true,
 			queryPerfSlowQueryThresholdSec:1,
 			queryResult:false
