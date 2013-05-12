@@ -9,7 +9,7 @@
 	"keywords": [
 		"mysql"
 	],
-	"version": "0.1.9",
+	"version": "0.1.10",
 	"bugs": {
 		"url": "https://github.com/Mindflash/mysqlutil/issues"
 	},
@@ -25,10 +25,10 @@
 	},
 	"main": "index.js",
 	"dependencies": {
-		"mysql": "git://github.com/felixge/node-mysql.git",
-		"lodash": "1.0.1",
-		"async": "0.2.5",
-		"dateformat": "1.0.6-1.2.3"
+		"mysql": "~2.0.0-alpha8",
+		"dateformat": "1.0.6-1.2.3",
+		"lodash": "~1.2.1",
+		"async": "~0.2.8"
 	},
 	"devDependencies": {
 		"tap": "~0.4.0"
