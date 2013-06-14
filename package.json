@@ -9,13 +9,14 @@
 	"keywords": [
 		"mysql"
 	],
-	"version": "0.1.10",
+	"version": "0.1.11",
 	"bugs": {
 		"url": "https://github.com/Mindflash/mysqlutil/issues"
 	},
 	"contributors": [
 		"Matt Smith <matt.smith@mindflash.com>",
-		"Max Nachlinger <max.nachlinger@gmail.com>"
+		"Max Nachlinger <max.nachlinger@gmail.com>",
+		"Alexander Shakov <a.sahovs@diatom.lv>"
 	],
 	"licenses": {
 		"type": "MIT"
