@@ -1,7 +1,7 @@
 {
 	"author": "Mindflash <npmjs@mindflash.com>",
 	"name": "mysqlutil",
-	"description": "A nice, simple, minuscule ORM thing wrapping node-mysql",
+	"description": "A nice, simple, node-mysql wrapper",
 	"homepage": "https://github.com/Mindflash/mysqlutil",
 	"repository": {
 		"url": "https://github.com/Mindflash/mysqlutil.git"
@@ -9,7 +9,7 @@
 	"keywords": [
 		"mysql"
 	],
-	"version": "0.1.12",
+	"version": "0.1.13",
 	"bugs": {
 		"url": "https://github.com/Mindflash/mysqlutil/issues"
 	},
