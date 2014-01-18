@@ -67,6 +67,27 @@ exports.dropHiLoTableAndProc = function (t) {
 	});
 };
 
+exports.createAutoIncrementTable = function (t) {
+	var sql = "CREATE TABLE AutoIncrementTest ( \
+		id bigint(20) NOT NULL AUTO_INCREMENT, \
+		name varchar(150) COLLATE utf8_unicode_ci NOT NULL, \
+		PRIMARY KEY (`id`) \
+	) ENGINE=InnoDB;";
+
+	exports.db.query(sql, function (err, res) {
+		t.notOk(err, "No errors were thrown when creating AutoIncrementTest Table, received: " + err);
+		t.end();
+	});
+};
+
+exports.dropAutoIncrementTable = function (t) {
+	var sql = "DROP TABLE IF EXISTS AutoIncrementTest;";
+	exports.db.query(sql, function (err, res) {
+		t.notOk(err, "No errors were thrown when dropping the AutoIncrementTest Table, received: " + err);
+		t.end();
+	});
+};
+
 exports.getItemsInTestTable = function (cb) {
 	exports.db.query('SELECT * FROM tmp', [], cb);
 };
@@ -95,6 +116,13 @@ exports.createTestTempTable = function (t) {
 exports.truncateTestTable = function (t) {
 	exports.db.query('TRUNCATE TABLE tmp;', function (err, res) {
 		t.notOk(err, "No errors were thrown when truncating test table, received: " + err);
+		t.end();
+	});
+};
+
+exports.truncateAutoIncrementTable = function (t) {
+	exports.db.query('TRUNCATE TABLE AutoIncrementTest;', function (err, res) {
+		t.notOk(err, "No errors were thrown when truncating AutoIncrementTest table, received: " + err);
 		t.end();
 	});
 };

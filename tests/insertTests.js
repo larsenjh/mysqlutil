@@ -9,6 +9,8 @@ var dateHelper = require('../lib/dateHelper.js');
 test("Connects to the database", harness.connect);
 test("Drops Hilo table and proc", harness.dropHiLoTableAndProc);
 test("Creates Hilo table and proc", harness.createHiLoTableAndProc);
+test("Drops AutoIncrement table", harness.dropAutoIncrementTable);
+test("Creates AutoIncrement table", harness.createAutoIncrementTable);
 test("Setup test table", harness.createTestTempTable);
 
 test("an insert using hilo works", function (t) {
@@ -40,6 +42,27 @@ test("an insert returns an insertId per inserted item", function (t) {
 });
 
 test("Truncates test table", harness.truncateTestTable);
+
+test("an insert returns an insertId per inserted item in a table with an AUTO_INCREMENT PK", function (t) {
+	var items = [{name: 'Test 0'}, {name: 'Test 1'}];
+
+	var insertIdMissing = false;
+	harness.db.insert('AutoIncrementTest', items, function (err, results) {
+		t.notOk(err, "no errors were thrown on insert, received: " + err);
+
+		_.each(results, function (result) {
+			if (!insertIdMissing && !result.insertId)
+				insertIdMissing = true;
+		});
+		t.notOk(insertIdMissing, "an insertId was passed back for each result after insert");
+		t.end();
+	},{
+		insertMode: require('../').insertModes.identity,
+		enforceRules: false
+	});
+});
+
+test("Truncates AutoIncrement table", harness.truncateAutoIncrementTable);
 
 test("insert-ignore doesn't error on duplicate row inserts", function (t) {
 	var items = harness.generateTestItems(5);
@@ -140,4 +163,5 @@ test("inserts are not written within transactions that have been rolled back", f
 */
 test("Drops test table", harness.dropTestTable);
 test("Drops Hilo table and proc", harness.dropHiLoTableAndProc);
+test("Drops AutoIncrement table", harness.dropAutoIncrementTable);
 test("Disconnects from the database", harness.disconnect);
