@@ -1,5 +1,5 @@
 "use strict";
-var test = require('tap').test;
+var test = require('tape');
 var _ = require('lodash');
 var dateHelper = require('../lib/dateHelper.js');
 var updateBuilder = require('../lib/updateBuilder.js');

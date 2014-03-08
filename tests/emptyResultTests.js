@@ -1,6 +1,6 @@
 "use strict";
 var _ = require('lodash');
-var test = require('tap').test;
+var test = require('tape');
 var harness = require('./helpers/harness.js');
 
 test("Connects to the database", harness.connect);

@@ -1,6 +1,6 @@
 "use strict";
 var _ = require('lodash');
-var test = require('tap').test;
+var test = require('tape');
 var async = require('async');
 var insertModes = require('../lib/insertModes.js');
 var harness = require('./helpers/harness.js');
