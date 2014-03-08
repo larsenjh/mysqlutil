@@ -9,7 +9,7 @@
 	"keywords": [
 		"mysql"
 	],
-	"version": "0.1.18",
+	"version": "0.1.19",
 	"bugs": {
 		"url": "https://github.com/Mindflash/mysqlutil/issues"
 	},
@@ -26,7 +26,7 @@
 	},
 	"main": "index.js",
 	"dependencies": {
-		"mysql": "^2.1.0",
+		"mysql": "~2.0.0-alpha9",
 		"dateformat": "^1.0.7-1.2.3",
 		"async": "^0.2.10",
 		"lodash": "^2.4.1"
