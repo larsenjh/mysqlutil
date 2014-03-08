@@ -5,4 +5,4 @@ node_js:
   - 0.8
 services: mysql
 before_script:
-  - mysql -e 'CREATE DATABASE IF NOT EXISTS mysqlutil_test;'
+  - mysql -e 'CREATE DATABASE mysqlutil_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'

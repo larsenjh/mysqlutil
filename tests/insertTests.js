@@ -4,13 +4,47 @@ var test = require('tap').test;
 var async = require('async');
 var insertModes = require('../lib/insertModes.js');
 var harness = require('./helpers/harness.js');
-var dateHelper = require('../lib/dateHelper.js');
 
 test("Connects to the database", harness.connect);
 test("Drops Hilo table and proc", harness.dropHiLoTableAndProc);
 test("Creates Hilo table and proc", harness.createHiLoTableAndProc);
 test("Drops AutoIncrement table", harness.dropAutoIncrementTable);
 test("Creates AutoIncrement table", harness.createAutoIncrementTable);
+
+test("inserts 4-byte characters", function (t) {
+	t.test("Sets up table using utf8mb4 charset", function(t) {
+		var sql = "DROP TABLE IF EXISTS utf8mb4_test; CREATE TABLE `utf8mb4_test` ( \
+			`name` VARCHAR(500) COLLATE utf8mb4_unicode_ci NOT NULL \
+		) ENGINE=INNODB \
+		DEFAULT CHARSET=utf8mb4 \
+		COLLATE=utf8mb4_unicode_ci;";
+		harness.db.query(sql, null, function (err) {
+			t.notOk(err, "no errors were thrown on create-table, received: " + err);
+			t.end();
+		});
+	});
+
+	t.test(function(t) {
+		var fourByteChar = '𠼭';
+		harness.db.insert('utf8mb4_test', [{name: fourByteChar}], function (err, results) {
+			t.notOk(err, "no errors were thrown on insert, received: " + err);
+			t.equal(results[0].name, fourByteChar);
+			t.end();
+		},{
+			insertMode: require('../').insertModes.custom,
+			enforceRules: false
+		});
+	});
+
+	t.test("Drops test table", function(t) {
+		var sql = "DROP TABLE utf8mb4_test;";
+		harness.db.query(sql, null, function (err) {
+			t.notOk(err, "no errors were thrown on drop, received: " + err);
+			t.end();
+		});
+	});
+});
+
 test("Setup test table", harness.createTestTempTable);
 
 test("an insert using hilo works", function (t) {
@@ -31,7 +65,7 @@ test("an insert returns an insertId per inserted item", function (t) {
 	var insertIdMissing = false;
 	harness.db.insert('tmp', items, function (err, results) {
 		t.notOk(err, "no errors were thrown on insert, received: " + err);
-		
+
 		_.each(results, function (result) {
 			if (!insertIdMissing && !result.insertId)
 				insertIdMissing = true;

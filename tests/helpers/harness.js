@@ -1,5 +1,4 @@
 "use strict";
-var async = require('async');
 var mysqlUtil = require('../../');
 var dateHelper = require('../../lib/dateHelper.js');
 exports.db = null;
@@ -19,17 +18,7 @@ exports.connect = function (t) {
 		host: process.env.MYSQL_HOST || '127.0.0.1',
 		user: process.env.MYSQL_USER || 'root',
 		password: process.env.MYSQL_PASSWORD || null,
-		database: process.env.MYSQL_DATABASE || 'mysqlutil_test',
-		debugging: {
-			hilo: false,
-			ping: false,
-			connectionEnd: false,
-			connectionError: false,
-			poolPerf: false,
-			queryPerf: false,
-			queryPerfSlowQueryThresholdSec: 1,
-			queryResult: false
-		}
+		database: process.env.MYSQL_DATABASE || 'mysqlutil_test'
 	}, function (err, session) {
 		t.notOk(err, "No errors should be thrown when connecting to the database, received: " + err);
 		t.ok(session, "A db session was received");
