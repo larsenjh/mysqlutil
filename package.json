@@ -9,7 +9,7 @@
 	"keywords": [
 		"mysql"
 	],
-	"version": "0.1.21",
+	"version": "0.1.22",
 	"bugs": {
 		"url": "https://github.com/Mindflash/mysqlutil/issues"
 	},
