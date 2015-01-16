@@ -30,6 +30,24 @@ function MysqlUtil(settings, cb) {
 		}
 	});
 
+	// cluster settings, if present (optional)
+	if(settings.cluster) {
+		_.each(settings.cluster.nodes, function (node) {
+			_.defaults(node, {
+				host: 'localhost',
+				port: 3306,
+				user: 'root',
+				multipleStatements: settings.multipleStatements,
+				waitForConnections: settings.waitForConnections,
+				timezone: settings.timezone,
+				charset: settings.charset,
+				connectionLimit: settings.connectionLimit,
+				amtToPrefill: settings.amtToPrefill
+			});
+			if (!node.name) return cb("cluster entry must have a name");
+		});
+	}
+	
 	this.session = require('./lib/session.js')(settings);
 
 	if (!settings.amtToPrefill)

@@ -27,6 +27,39 @@ exports.connect = function (t) {
 	});
 };
 
+exports.connectClustered = function (defaultNode, defaultOrder, t) {
+	mysqlUtil({
+		debugging: {
+			queryPerf: true
+		},
+		cluster: {
+			defaultNode: defaultNode,
+			defaultOrder: defaultOrder,
+			nodes: [
+				{
+					name: 'node1',
+					host: process.env.MYSQL_HOST || '127.0.0.1',
+					user: process.env.MYSQL_USER || 'root',
+					password: process.env.MYSQL_PASSWORD || null,
+					database: process.env.MYSQL_DATABASE || 'mysqlutil_test'
+				},
+				{
+					name: 'node2',
+					host: process.env.MYSQL_HOST || '127.0.0.1',
+					user: process.env.MYSQL_USER || 'root',
+					password: process.env.MYSQL_PASSWORD || null,
+					database: process.env.MYSQL_DATABASE || 'mysqlutil_test'
+				}
+			]
+		}
+	}, function (err, session) {
+		t.notOk(err, "No errors should be thrown when connecting to the database, received: " + err);
+		t.ok(session, "A db session was received");
+		exports.db = session;
+		t.end();
+	});
+};
+
 exports.createHiLoTableAndProc = function (t) {
 	var sql = "CREATE TABLE HiLoID ( \
 	NextHi bigint(20) NOT NULL, \
